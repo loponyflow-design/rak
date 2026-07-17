@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>RAK</title>
+<meta name="description" content="RAK — เครื่องมือฝึกพฤติกรรมรายวัน อิงสภาพอากาศจริง ไม่ใช่คำทำนาย">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="RAK">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F5F7EE">
+<link id="manifest-link" rel="manifest">
+<link id="favicon-link" rel="icon" type="image/svg+xml">
+<link id="apple-icon-link" rel="apple-touch-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Noto+Sans+Thai:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F7EE;
+    --card:#FFFFFF;
+    --card-active:#EEF3E4;
+    --border:#DCE5CC;
+    --border-active:#C5D4AD;
+    --green:#5B9C4A;
+    --gold:#E8A83A;
+    --text-1:#1F2B18;
+    --text-2:#2E3D24;
+    --text-3:#5C6B4F;
+    --text-4:#7C8A6E;
+    --text-5:#9BA88F;
+    --radius:16px;
+    --shadow:0 2px 8px rgba(31,43,24,0.06);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text-2);
+    font-family:'Noto Sans Thai',sans-serif;
+    font-weight:400;
+    min-height:100vh;
+    padding-top:env(safe-area-inset-top);
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-weight:600; margin:0;}
+  p{margin:0;}
+  button{font-family:inherit; cursor:pointer;}
+  .hidden{display:none !important;}
+  .serif{font-family:'Fraunces',serif;}
+  .logo-mark{
+    font-family:'Poppins',sans-serif;
+    font-weight:800;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--green);
+  }
+
+  /* ---------- Onboarding ---------- */
+  #onboarding-screen{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:32px 24px calc(32px + env(safe-area-inset-bottom));
+    text-align:center;
+  }
+  .onboard-sprout{width:60px; height:60px; margin-bottom:18px;}
+  #onboarding-screen .logo-mark{font-size:34px; margin-bottom:10px;}
+  .onboard-tagline{color:var(--text-3); font-size:14px; max-width:280px; line-height:1.7; margin-bottom:30px;}
+  .onboard-principles{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    width:100%; max-width:340px; margin-bottom:26px;
+  }
+  .onboard-principle-chip{
+    background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);
+    padding:14px 8px; font-size:12px; color:var(--text-3); line-height:1.5;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .onboard-principle-chip svg{color:var(--green);}
+  .onboard-explain{
+    max-width:300px; font-size:12.5px; color:var(--text-3);
+    line-height:1.7; margin-bottom:24px;
+  }
+  .onboard-actions{width:100%; max-width:280px; display:flex; flex-direction:column; gap:12px; align-items:center;}
+  .onboard-city-row{display:none; width:100%; gap:8px;}
+  .onboard-city-row.show{display:flex;}
+  .onboard-city-row input{
+    flex:1; background:var(--card); border:1px solid var(--border-active); border-radius:12px;
+    padding:12px 14px; color:var(--text-1); font-family:inherit; font-size:15px;
+  }
+  .onboard-link{background:none; border:none; color:var(--text-3); font-size:13px; text-decoration:underline; padding:4px;}
+  .onboard-status{font-size:12.5px; color:var(--text-3); min-height:18px; margin-top:4px;}
+  .btn-primary{
+    background:var(--green); color:#FFFFFF; border:none; border-radius:999px;
+    padding:14px 40px; font-size:16px; font-weight:600; width:100%; max-width:280px;
+    transition:opacity .15s; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-primary:disabled{opacity:0.4;}
+  .btn-secondary{
+    background:var(--card); color:var(--text-3); border:1px solid var(--border-active);
+    border-radius:999px; padding:12px 28px; font-size:14px;
+  }
+  .onboard-footnote{margin-top:26px; color:var(--text-5); font-size:11px; max-width:280px; line-height:1.6;}
+
+  /* ---------- App shell ---------- */
+  .page{max-width:520px; margin:0 auto; padding:0 18px 110px;}
+  .app-header{display:flex; align-items:center; justify-content:space-between; padding:calc(18px + env(safe-area-inset-top)) 2px 6px;}
+  .app-header .logo-mark{font-size:20px;}
+  .header-right{display:flex; align-items:center; gap:10px;}
+  .streak-mini{
+    display:flex; align-items:center; gap:5px; background:var(--card); border:1px solid var(--border);
+    border-radius:999px; padding:6px 12px; font-size:13px; color:var(--gold); box-shadow:var(--shadow);
+  }
+  .icon-btn{
+    background:var(--card); border:1px solid var(--border); border-radius:50%; width:36px; height:36px;
+    display:flex; align-items:center; justify-content:center; color:var(--text-3); box-shadow:var(--shadow);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{position:relative; text-align:center; padding:26px 10px 24px; overflow:hidden;}
+  .hero-wave{position:absolute; top:34%; left:50%; transform:translate(-50%,-50%); width:280px; max-width:100%; opacity:0.4; pointer-events:none;}
+  .hero-date{font-size:13px; color:var(--text-3); letter-spacing:0.03em; margin-bottom:16px; position:relative;}
+  .hero-number{font-family:'Fraunces',serif; font-weight:500; font-size:88px; line-height:1; color:var(--green); position:relative;}
+  .hero-number-label{font-size:12px; color:var(--text-4); margin-top:6px; position:relative;}
+  .hero-reason{
+    font-family:'Fraunces',serif; font-size:15px; font-weight:500; line-height:1.6; color:var(--text-1);
+    max-width:320px; margin:16px auto 0; position:relative;
+  }
+  .hero-meta{display:flex; justify-content:center; gap:14px; margin-top:22px; position:relative; flex-wrap:wrap;}
+  .hero-meta-item{
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 16px; box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-2);
+  }
+  .color-dot{width:18px; height:18px; border-radius:50%; flex-shrink:0; border:1px solid rgba(31,43,24,0.12);}
+  .meta-icon{display:flex; align-items:center; color:var(--green); flex-shrink:0;}
+  .hero-meta-item .sub{color:var(--text-4); font-size:11px; display:block;}
+
+  /* ---------- Section heading ---------- */
+  .section-title{font-size:14px; color:var(--text-3); margin:34px 2px 14px; letter-spacing:0.02em; font-weight:600;}
+
+  /* ---------- Principle cards ---------- */
+  .principles-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .principle-card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow);
+    padding:18px 12px; text-align:center; transition:border-color .2s, background .2s, opacity .2s;
+    opacity:0.72;
+  }
+  .principle-card.today{background:var(--card-active); border-color:var(--green); border-width:2px; opacity:1;}
+  .principle-icon-wrap{
+    width:44px; height:44px; margin:0 auto 10px; border-radius:50%;
+    background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--text-3);
+  }
+  .principle-card.today .principle-icon-wrap{background:rgba(91,156,74,0.14); color:var(--green);}
+  .principle-name{font-size:12.5px; color:var(--text-2); font-weight:500;}
+  .principle-tag{font-size:10px; color:var(--text-5); margin-top:6px;}
+  .principle-tag.active{
+    display:inline-block; color:#FFFFFF; background:var(--green); border-radius:999px;
+    padding:2px 9px; font-weight:600; letter-spacing:0.02em;
+  }
+  .principle-reason{font-size:10.5px; color:var(--text-4); line-height:1.5; margin-top:6px;}
+
+  /* ---------- Affirmation ---------- */
+  .affirmation-card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:28px 24px; text-align:center;
+  }
+  .affirmation-text{font-family:'Fraunces',serif; font-weight:500; font-size:19px; line-height:1.65; color:var(--text-1);}
+
+  /* ---------- Tips ---------- */
+  .tip-item{
+    display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow);
+    border-radius:14px; padding:16px 18px; margin-bottom:10px;
+  }
+  .tip-check{
+    width:22px; height:22px; border-radius:50%; border:1.5px solid var(--border-active); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; color:transparent; font-size:12px; transition:all .15s;
+  }
+  .tip-item.done{background:var(--card-active);}
+  .tip-item.done .tip-check{background:var(--green); border-color:var(--green); color:#FFFFFF;}
+  .tip-text{font-size:14px; line-height:1.6; color:var(--text-2);}
+  .tip-item.done .tip-text{color:var(--text-4); text-decoration:line-through; text-decoration-color:var(--text-5);}
+
+  /* ---------- Journal / input rows ---------- */
+  .journal-input-row{display:flex; gap:8px;}
+  .journal-input{
+    flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:13px 14px; color:var(--text-1); font-family:inherit; font-size:14px;
+  }
+  .journal-input::placeholder{color:var(--text-5);}
+  .journal-send{background:var(--green); color:#FFFFFF; border:none; border-radius:12px; width:46px; font-size:16px; font-weight:700;}
+  .journal-timeline{margin-top:14px;}
+  .journal-entry{padding:10px 4px; border-bottom:1px solid var(--border); font-size:13px;}
+  .journal-entry .je-date{color:var(--text-4); font-size:11px; margin-bottom:3px;}
+  .journal-entry .je-text{color:var(--text-2); line-height:1.5;}
+  .journal-toggle{text-align:center; color:var(--text-4); font-size:12px; padding:10px;}
+
+  /* ---------- Streak ---------- */
+  .streak-section{display:flex; gap:12px;}
+  .streak-box{flex:1; background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow); border-radius:14px; padding:18px 16px; text-align:center;}
+  .streak-box .num{font-family:'Fraunces',serif; font-size:30px; color:var(--green); font-variant-numeric:tabular-nums;}
+  .streak-box .lbl{font-size:11px; color:var(--text-4); margin-top:4px;}
+  .streak-away-msg{
+    flex:1; background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow); border-radius:14px; padding:18px 16px;
+    text-align:center; font-size:13px; color:var(--text-2); line-height:1.7;
+  }
+  .streak-away-msg svg{color:var(--green); margin-bottom:6px;}
+
+  /* ---------- Footer ---------- */
+  .footer-disclaimer{margin-top:36px; text-align:center; font-size:11px; color:var(--text-5); line-height:1.6; padding:0 20px;}
+
+  /* ---------- FAB ---------- */
+  .fab{
+    position:fixed; right:18px; bottom:calc(78px + env(safe-area-inset-bottom));
+    background:var(--card); border:1px solid var(--border); color:var(--text-2);
+    border-radius:999px; padding:12px 18px; font-size:13px; display:flex; align-items:center; gap:8px;
+    box-shadow:0 4px 16px rgba(31,43,24,0.14); z-index:40;
+  }
+
+  /* ---------- Bottom nav ---------- */
+  #bottom-nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    background:var(--card); border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom);
+    display:flex;
+  }
+  .nav-btn{
+    flex:1; background:none; border:none; padding:10px 4px 8px;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    color:var(--text-4); font-size:11px;
+  }
+  .nav-btn.active{color:var(--green); font-weight:600;}
+
+  /* ---------- Modals ---------- */
+  .modal-overlay{position:fixed; inset:0; background:rgba(31,43,24,0.45); display:flex; align-items:flex-end; z-index:100;}
+  .modal-overlay.center{align-items:center; padding:20px;}
+  .modal-sheet{
+    background:var(--bg); border:1px solid var(--border); border-bottom:none; border-radius:22px 22px 0 0;
+    width:100%; max-height:88vh; overflow-y:auto; padding:22px 22px calc(28px + env(safe-area-inset-bottom));
+  }
+  .modal-overlay.center .modal-sheet{border-radius:20px; border-bottom:1px solid var(--border); max-width:400px;}
+  .modal-title{font-family:'Fraunces',serif; font-size:20px; color:var(--text-1); margin-bottom:4px;}
+  .modal-sub{font-size:12px; color:var(--text-4); margin-bottom:18px;}
+  .modal-stat-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; color:var(--text-2);}
+  .modal-stat-row .v{color:var(--green); font-weight:600;}
+  .modal-question{margin-top:20px;}
+  .modal-question .q{font-size:13px; color:var(--text-2); margin-bottom:10px;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip-btn{background:var(--card); border:1px solid var(--border); border-radius:999px; padding:9px 14px; font-size:12px; color:var(--text-3);}
+  .chip-btn.selected{background:var(--green); color:#FFFFFF; border-color:var(--green);}
+  .modal-textarea{
+    width:100%; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px;
+    color:var(--text-1); font-family:inherit; font-size:13px; resize:none; min-height:64px; margin-top:6px;
+  }
+  .modal-actions{display:flex; gap:10px; margin-top:24px;}
+  .modal-actions .btn-primary,.modal-actions .btn-secondary{width:auto; flex:1;}
+
+  .breathe-wrap{display:flex; flex-direction:column; align-items:center; padding:10px 0 6px;}
+  .breathe-circle{
+    width:110px; height:110px; border-radius:50%; background:radial-gradient(circle,var(--card-active),var(--card));
+    border:1px solid var(--border-active); transition:transform 4s ease-in-out; transform:scale(0.82);
+  }
+  .breathe-circle.in{transform:scale(1.08);}
+  .breathe-label{margin-top:16px; font-size:13px; color:var(--text-3);}
+
+  .settings-section-title{font-size:12px; color:var(--text-4); margin:22px 0 10px; letter-spacing:0.03em; font-weight:600;}
+  .settings-row{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); gap:12px;}
+  .settings-row .lbl{font-size:14px; color:var(--text-2);}
+  .settings-row .val{font-size:12px; color:var(--text-4); text-align:right;}
+  .schedule-grid{display:flex; gap:6px; flex-wrap:wrap;}
+  .schedule-chip{
+    width:38px; height:38px; border-radius:50%; border:1px solid var(--border); background:var(--card);
+    color:var(--text-3); font-size:12px; display:flex; align-items:center; justify-content:center;
+  }
+  .schedule-chip.busy{background:rgba(232,168,58,0.18); border-color:var(--gold); color:#8A6417; font-weight:600;}
+  .settings-city-row{display:flex; gap:8px; margin-top:10px;}
+  .settings-city-row input{
+    flex:1; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px;
+    color:var(--text-1); font-family:inherit; font-size:13px;
+  }
+  input[type=file]{display:none;}
+
+  /* ---------- Growth page ---------- */
+  .growth-title{font-family:'Fraunces',serif; font-size:26px; color:var(--text-1); margin-top:calc(20px + env(safe-area-inset-top));}
+  .growth-tagline{font-size:13px; color:var(--text-3); margin-top:4px; line-height:1.6;}
+  .growth-card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:20px; margin-top:14px;
+  }
+  .growth-card-head{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .growth-card-head .gi{
+    width:36px; height:36px; border-radius:50%; background:var(--card-active); color:var(--green);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .growth-card-head .gt{font-size:14.5px; font-weight:600; color:var(--text-1);}
+  .growth-card-head .gs{font-size:11px; color:var(--text-4);}
+  .growth-prompt{font-family:'Fraunces',serif; font-size:16px; color:var(--text-1); line-height:1.55; margin-bottom:14px;}
+  .growth-counter{font-size:12px; color:var(--text-4); margin-top:12px;}
+  .growth-counter b{color:var(--green); font-variant-numeric:tabular-nums;}
+  .badge-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
+  .badge-chip{
+    display:inline-flex; align-items:center; gap:4px; background:rgba(232,168,58,0.16); color:#8A6417;
+    border-radius:999px; padding:4px 10px; font-size:11px; font-weight:600;
+  }
+  .skill-history{margin-top:10px;}
+  .skill-history-item{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; color:var(--text-3);}
+  .idea-search{
+    width:100%; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:9px 12px;
+    color:var(--text-1); font-family:inherit; font-size:13px; margin:12px 0 4px;
+  }
+  .idea-list{margin-top:6px;}
+  .idea-item{display:flex; gap:10px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border);}
+  .idea-item .ii{color:var(--text-4); flex-shrink:0; margin-top:2px;}
+  .idea-item .it{flex:1; font-size:13.5px; color:var(--text-2); line-height:1.5;}
+  .idea-item .id-date{font-size:10.5px; color:var(--text-5); margin-top:3px;}
+  .idea-item .del-btn{color:var(--text-5); flex-shrink:0; background:none; border:none; padding:2px;}
+  .idea-empty{font-size:12.5px; color:var(--text-4); padding:10px 0;}
+  .archive-toggle{text-align:center; color:var(--text-4); font-size:12px; padding:12px 0 2px; cursor:pointer;}
+  .challenge-caption{font-size:10.5px; color:var(--text-5); margin-bottom:8px;}
+  .challenge-actions{display:flex; gap:10px; margin-top:14px; align-items:center;}
+  .challenge-check{
+    display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-2); flex:1;
+  }
+  .challenge-check .cb{
+    width:20px; height:20px; border-radius:6px; border:1.5px solid var(--border-active); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; color:transparent; font-size:11px;
+  }
+  .challenge-check.done .cb{background:var(--green); border-color:var(--green); color:#FFFFFF;}
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div id="onboarding-screen">
+  <svg class="onboard-sprout" viewBox="0 0 100 100" fill="none">
+    <path d="M50 78 V45 M50 45 C38 45 30 35 30 22 C45 22 52 32 52 42 M50 50 C62 50 70 40 70 30 C57 30 50 38 50 46" stroke="#5B9C4A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="50" cy="80" r="3.5" fill="#E8A83A"/>
+  </svg>
+  <div class="logo-mark">RAK</div>
+  <p class="onboard-tagline">พื้นที่ส่วนตัวสำหรับหยั่งรากนิสัยที่ดี ทีละวัน<br>ไม่ใช่แอพทำนายดวง</p>
+
+  <div class="onboard-principles">
+    <div class="onboard-principle-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M3.6 9h16.8" /><path d="M3.6 15h16.8" /><path d="M11.5 3a17 17 0 0 0 0 18" /><path d="M12.5 3a17 17 0 0 1 0 18" /></svg>สร้างโอกาส</div>
+    <div class="onboard-principle-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13m0 2a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2z" /><path d="M15 13m0 2a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2z" /><path d="M4 15v-3a8 8 0 0 1 16 0v3" /></svg>ฟังสัญชาตญาณ</div>
+    <div class="onboard-principle-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z" /></svg>คาดหวังเชิงบวก</div>
+    <div class="onboard-principle-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>พลิกวิกฤต</div>
+  </div>
+
+  <p class="onboard-explain">ระบบใช้สภาพอากาศจริงของวันนี้ + ตารางความยุ่งของคุณ ช่วยแนะนำว่าวันนี้ควรโฟกัสด้านไหน</p>
+
+  <div class="onboard-actions">
+    <button class="btn-primary" id="onboard-geo-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" /><path d="M12 2l0 2" /><path d="M12 20l0 2" /><path d="M20 12l2 0" /><path d="M2 12l2 0" /></svg>
+      อนุญาตตำแหน่งเพื่อเริ่มต้น
+    </button>
+    <button class="onboard-link" id="onboard-city-toggle">พิมพ์ชื่อเมืองแทน</button>
+    <div class="onboard-city-row" id="onboard-city-row">
+      <input type="text" id="onboard-city-input" placeholder="เช่น เชียงใหม่, ขอนแก่น">
+      <button class="btn-secondary" id="onboard-city-submit">ยืนยัน</button>
+    </div>
+    <div class="onboard-status" id="onboard-status"></div>
+    <button class="onboard-link" id="onboard-skip">ข้ามไปก่อน (ใช้ค่าเริ่มต้น)</button>
+  </div>
+
+  <p class="onboard-footnote">ตำแหน่งใช้เพื่อดึงสภาพอากาศเท่านั้น ไม่ถูกส่งไปที่ใด เก็บไว้ในเครื่องนี้อย่างเดียว</p>
+</div>
+
+<!-- TODAY PAGE -->
+<div id="app" class="page hidden">
+  <div class="app-header">
+    <div class="logo-mark">RAK</div>
+    <div class="header-right">
+      <div class="streak-mini"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z" /></svg> <span id="header-streak">0</span></div>
+      <button class="icon-btn" id="settings-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <svg class="hero-wave" viewBox="0 0 280 60" fill="none">
+      <path d="M0 30 C 40 5, 80 55, 140 30 S 240 5, 280 30" stroke="#5B9C4A" stroke-width="1"/>
+    </svg>
+    <div class="hero-date" id="hero-date"></div>
+    <div class="hero-number serif" id="hero-number">-</div>
+    <div class="hero-number-label" id="hero-number-label">เลขวันนี้</div>
+    <div class="hero-reason" id="hero-reason"></div>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="color-dot" id="hero-color-dot"></span>
+        <span><span id="hero-color-name">-</span><span class="sub">สีวันนี้</span></span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="meta-icon" id="hero-moon-icon"></span>
+        <span><span id="hero-moon-name">-</span><span class="sub">เฟสจันทร์</span></span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="meta-icon" id="hero-highlight-icon"></span>
+        <span><span id="hero-highlight-name">-</span><span class="sub">จุดเด่นวันนี้</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">โฟกัสวันนี้</div>
+  <div class="principles-grid" id="principles-grid"></div>
+
+  <div class="section-title">แรงบันดาลใจวันนี้</div>
+  <div class="affirmation-card">
+    <div class="affirmation-text" id="affirmation-text">-</div>
+  </div>
+
+  <div class="section-title">ลองทำวันนี้</div>
+  <div id="tips-list"></div>
+
+  <div class="section-title">บันทึกของคุณ</div>
+  <div class="journal-input-row">
+    <input class="journal-input" id="journal-input" placeholder="วันนี้คุณสร้าง/สังเกตโอกาสอะไรบ้าง...">
+    <button class="journal-send" id="journal-send">→</button>
+  </div>
+  <div id="journal-timeline-wrap">
+    <div class="journal-timeline" id="journal-timeline"></div>
+    <div class="journal-toggle hidden" id="journal-toggle">ดูเพิ่มเติม</div>
+  </div>
+
+  <div class="section-title">เส้นทางของคุณ</div>
+  <div class="streak-section" id="streak-section"></div>
+
+  <p class="footer-disclaimer">คำแนะนำอิงสภาพอากาศจริงและข้อมูลของคุณ ไม่ใช่คำทำนาย</p>
+</div>
+
+<!-- GROWTH PAGE -->
+<div id="growth-page" class="page hidden">
+  <div class="growth-title">เติบโต</div>
+  <p class="growth-tagline">พื้นที่ฝึกมองหาโอกาสและพัฒนาตัวเอง ไม่บังคับเข้าทุกวัน</p>
+
+  <!-- Opportunity Spotting -->
+  <div class="growth-card">
+    <div class="growth-card-head">
+      <div class="gi">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 7a5 5 0 1 0 5 5" /><path d="M13 3.055a9 9 0 1 0 7.941 7.945" /><path d="M15 6v3h3l3 -3h-3v-3z" /><path d="M15 9l-3 3" /></svg>
+      </div>
+      <div>
+        <div class="gt">มองหาโอกาสวันนี้</div>
+        <div class="gs">ภารกิจสั้นๆ ฝึกสายตามองหาโอกาส</div>
+      </div>
+    </div>
+    <div class="growth-prompt" id="spotting-prompt">-</div>
+    <div class="journal-input-row">
+      <input class="journal-input" id="spotting-input" placeholder="เขียนคำตอบสั้นๆ (ไม่บังคับ)...">
+      <button class="journal-send" id="spotting-send">→</button>
+    </div>
+    <div class="growth-counter">ทำแล้วสะสม <b id="spotting-count">0</b> วัน</div>
+  </div>
+
+  <!-- Skill Sprint -->
+  <div class="growth-card">
+    <div class="growth-card-head">
+      <div class="gi">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
+      </div>
+      <div>
+        <div class="gt">ฝึกทักษะ</div>
+        <div class="gs">เลือกทักษะที่อยากฝึก แล้วฝึกทีละวัน</div>
+      </div>
+    </div>
+    <div id="skill-sprint-body"></div>
+  </div>
+
+  <!-- Business Idea Vault -->
+  <div class="growth-card">
+    <div class="growth-card-head">
+      <div class="gi">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /><path d="M9.7 17l4.6 0" /></svg>
+      </div>
+      <div>
+        <div class="gt">คลังไอเดีย</div>
+        <div class="gs">เก็บไอเดียธุรกิจที่ผุดขึ้นมา</div>
+      </div>
+    </div>
+    <div class="journal-input-row">
+      <input class="journal-input" id="idea-input" placeholder="เพิ่มไอเดียใหม่...">
+      <button class="journal-send" id="idea-send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></button>
+    </div>
+    <input class="idea-search" id="idea-search" placeholder="ค้นหาไอเดีย...">
+    <div class="idea-list" id="idea-list"></div>
+    <div class="archive-toggle hidden" id="idea-archive-toggle">ดูคลังเก่า</div>
+    <div class="idea-list hidden" id="idea-archive-list"></div>
+  </div>
+
+  <!-- Weekly Challenge -->
+  <div class="growth-card">
+    <div class="growth-card-head">
+      <div class="gi">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" /><circle cx="8.5" cy="8.5" r=".5" fill="currentColor" /><circle cx="15.5" cy="8.5" r=".5" fill="currentColor" /><circle cx="15.5" cy="15.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="15.5" r=".5" fill="currentColor" /></svg>
+      </div>
+      <div>
+        <div class="gt">ความท้าทายประจำสัปดาห์</div>
+        <div class="gs">การ์ดใหม่ทุก 7 วัน</div>
+      </div>
+    </div>
+    <div id="challenge-body"></div>
+  </div>
+
+  <p class="footer-disclaimer">เครื่องมือฝึกฝนที่วัดผลจากการกระทำของคุณเอง ไม่รับประกันผลลัพธ์ทางธุรกิจหรือการเงิน</p>
+</div>
+
+<button class="fab hidden" id="intuition-fab"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13m0 2a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2z" /><path d="M15 13m0 2a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2z" /><path d="M4 15v-3a8 8 0 0 1 16 0v3" /></svg> มีเรื่องต้องตัดสินใจ?</button>
+
+<div id="bottom-nav" class="hidden">
+  <button class="nav-btn active" id="nav-today">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M10 12h4v4h-4z" /></svg>
+    วันนี้
+  </button>
+  <button class="nav-btn" id="nav-growth">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a10 10 0 1 0 20 0" /><path d="M12 19a10 10 0 0 1 10 -10" /><path d="M2 9a10 10 0 0 1 10 10" /><path d="M12 4a9.7 9.7 0 0 1 2.99 7.5" /><path d="M9.01 11.5a9.7 9.7 0 0 1 2.99 -7.5" /></svg>
+    เติบโต
+  </button>
+</div>
+
+<!-- Intuition modal -->
+<div class="modal-overlay center hidden" id="intuition-modal">
+  <div class="modal-sheet">
+    <div class="modal-title">ฟังสัญชาตญาณ</div>
+    <div class="modal-sub" id="intuition-step-sub">หายใจลึกๆ สัก 3 ครั้ง แล้วฟังความรู้สึกแรกของคุณ</div>
+    <div class="breathe-wrap" id="breathe-wrap">
+      <div class="breathe-circle" id="breathe-circle"></div>
+      <div class="breathe-label" id="breathe-label">เตรียมตัว...</div>
+    </div>
+    <div class="modal-question hidden" id="intuition-question-wrap">
+      <div class="q">ความรู้สึกแรกบอกอะไรคุณ? (ไม่บังคับ)</div>
+      <textarea class="modal-textarea" id="intuition-textarea" placeholder="เขียนสั้นๆ ก็ได้..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="intuition-skip">ข้าม</button>
+      <button class="btn-primary hidden" id="intuition-save">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly reflection modal -->
+<div class="modal-overlay hidden" id="weekly-modal">
+  <div class="modal-sheet">
+    <div class="modal-title">สรุป 7 วันที่ผ่านมา</div>
+    <div class="modal-sub">ข้อมูลจริงจากสิ่งที่คุณบันทึกไว้ ไม่ใช่คำทำนาย</div>
+    <div id="weekly-stats"></div>
+    <div class="modal-question">
+      <div class="q">สัปดาห์นี้กิจกรรมไหนที่ทำแล้วรู้สึกว่าช่วยจริง?</div>
+      <div class="chip-row" id="weekly-principle-chips"></div>
+    </div>
+    <div class="modal-question">
+      <div class="q">สัปดาห์นี้มีอะไรที่ตอนแรกดูแย่ แต่กลับดีภายหลังไหม?</div>
+      <textarea class="modal-textarea" id="weekly-resilience-text" placeholder="เขียนสั้นๆ หรือข้ามได้..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="weekly-save">บันทึกและปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- Monthly summary modal -->
+<div class="modal-overlay center hidden" id="monthly-modal">
+  <div class="modal-sheet">
+    <div class="modal-title">เดือนที่ผ่านมาของคุณ</div>
+    <div class="modal-sub" id="monthly-sub"></div>
+    <div id="monthly-stats"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="monthly-close">รับทราบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Idea resurface modal -->
+<div class="modal-overlay center hidden" id="idea-resurface-modal">
+  <div class="modal-sheet">
+    <div class="modal-title">ไอเดียเก่าของคุณ</div>
+    <div class="modal-sub" id="idea-resurface-date"></div>
+    <div class="growth-prompt" id="idea-resurface-text">-</div>
+    <div class="modal-question"><div class="q">ไอเดียนี้ยังน่าสนใจอยู่ไหม</div></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="idea-resurface-archive">เก็บเข้าคลังเก่า</button>
+      <button class="btn-primary" id="idea-resurface-keep">ยังน่าสนใจอยู่</button>
+    </div>
+    <div class="modal-actions">
+      <button class="onboard-link" id="idea-resurface-delete" style="margin:0 auto;">ลบไอเดียนี้</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-overlay hidden" id="settings-modal">
+  <div class="modal-sheet">
+    <div class="modal-title">ตั้งค่า</div>
+
+    <div class="settings-section-title">ตำแหน่งของคุณ</div>
+    <div class="settings-row">
+      <span class="lbl">ตำแหน่งปัจจุบัน</span>
+      <span class="val" id="settings-location-val">-</span>
+    </div>
+    <div class="settings-city-row">
+      <button class="btn-secondary" id="settings-geo-btn" style="flex:1;">ใช้ตำแหน่งปัจจุบันอีกครั้ง</button>
+    </div>
+    <div class="settings-city-row">
+      <input type="text" id="settings-city-input" placeholder="หรือพิมพ์ชื่อเมือง">
+      <button class="btn-secondary" id="settings-city-submit">ยืนยัน</button>
+    </div>
+    <div class="onboard-status" id="settings-location-status"></div>
+
+    <div class="settings-section-title">ตารางความยุ่งประจำสัปดาห์</div>
+    <div class="schedule-grid" id="schedule-grid"></div>
+
+    <div class="settings-section-title">ข้อมูลของคุณ</div>
+    <div class="settings-row">
+      <span class="lbl">สำรองข้อมูล (Export)</span>
+      <button class="btn-secondary" id="export-btn">ดาวน์โหลด</button>
+    </div>
+    <div class="settings-row">
+      <span class="lbl">นำเข้าข้อมูล (Import)</span>
+      <button class="btn-secondary" id="import-btn">เลือกไฟล์</button>
+      <input type="file" id="import-file" accept="application/json">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="settings-close">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= Utilities ================= */
+function pad2(n){ return String(n).padStart(2,'0'); }
+function formatDateLocal(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function parseDateLocal(str){ var p=str.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); }
+function daysBetween(a,b){ var A=new Date(a.getFullYear(),a.getMonth(),a.getDate()); var B=new Date(b.getFullYear(),b.getMonth(),b.getDate()); return Math.round((A-B)/86400000); }
+function sumDigits(str){ var s=0; for(var i=0;i<str.length;i++){ var c=str.charCodeAt(i)-48; if(c>=0&&c<=9) s+=c; } return s; }
+function hashString(str){
+  var hash=0;
+  for(var i=0;i<str.length;i++){ hash = (hash*31 + str.charCodeAt(i)) | 0; }
+  return hash>>>0;
+}
+function mulberry32(seed){
+  var a = seed;
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ a>>>15, 1 | a);
+    t = (t + Math.imul(t ^ t>>>7, 61 | t)) ^ t;
+    return ((t ^ t>>>14) >>> 0) / 4294967296;
+  };
+}
+function fetchWithTimeout(promiseFn, ms){
+  return Promise.race([
+    promiseFn(),
+    new Promise(function(_,reject){ setTimeout(function(){ reject(new Error('timeout')); }, ms); })
+  ]);
+}
+function escapeHTML(s){
+  var div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+
+/* ================= Astronomy (moon phase) ================= */
+var SYNODIC_MONTH = 29.53058867;
+var KNOWN_NEW_MOON = Date.UTC(2000,0,6,18,14,0);
+function getMoonPhaseValue(dateObj){
+  var diffDays = (dateObj.getTime() - KNOWN_NEW_MOON) / 86400000;
+  var phase = (diffDays % SYNODIC_MONTH) / SYNODIC_MONTH;
+  if(phase<0) phase += 1;
+  return phase;
+}
+function getMoonDayLabel(phaseValue){
+  var days = phaseValue * SYNODIC_MONTH;
+  var half = SYNODIC_MONTH/2;
+  if(days < half){
+    var n = Math.max(1, Math.min(15, Math.round(days)+1));
+    return 'ขึ้น '+n+' ค่ำ';
+  }
+  var n2 = Math.max(1, Math.min(15, Math.round(days-half)));
+  return 'แรม '+n2+' ค่ำ';
+}
+/* Verified via numeric shoelace-area + centroid check against the analytic
+   illuminated-fraction formula k=(1-cos(2*pi*phase))/2 before shipping.
+   Do not tweak sweep flags without re-verifying. */
+function moonPhaseIconSVG(phase, size){
+  size = size || 18;
+  var r = 8.5, cx = 12, cy = 12;
+  var m = Math.cos(2*Math.PI*phase);
+  var rx = Math.abs(m)*r;
+  var outerSweep = phase<0.5 ? 1 : 0;
+  var base = m<0 ? 1 : 0;
+  var innerSweep = phase<0.5 ? base : (1-base);
+  var top = cx+','+(cy-r), bottom = cx+','+(cy+r);
+  var path;
+  if(rx<0.05){
+    path = 'M '+top+' A '+r+','+r+' 0 0 '+outerSweep+' '+bottom+' Z';
+  } else {
+    path = 'M '+top+' A '+r+','+r+' 0 0 '+outerSweep+' '+bottom+
+           ' A '+rx.toFixed(2)+','+r+' 0 0 '+innerSweep+' '+top+' Z';
+  }
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24">' +
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.3"/>' +
+    '<path d="'+path+'" fill="currentColor"/>' +
+    '</svg>';
+}
+
+var WEEKDAY_TH = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+var MONTH_TH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function formatThaiDate(dateObj){
+  return 'วัน'+WEEKDAY_TH[dateObj.getDay()]+'ที่ '+dateObj.getDate()+' '+MONTH_TH[dateObj.getMonth()]+' '+(dateObj.getFullYear()+543);
+}
+
+/* ================= Line icons (Tabler-style, no emoji) ================= */
+var ICON_PATHS = {
+  flame: '<path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z" />',
+  world: '<path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M3.6 9h16.8" /><path d="M3.6 15h16.8" /><path d="M11.5 3a17 17 0 0 0 0 18" /><path d="M12.5 3a17 17 0 0 1 0 18" />',
+  headphones: '<path d="M4 13m0 2a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2z" /><path d="M15 13m0 2a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2z" /><path d="M4 15v-3a8 8 0 0 1 16 0v3" />',
+  sparkles: '<path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z" />',
+  refresh: '<path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />',
+  settings: '<path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />',
+  droplet: '<path d="M7.502 19.423c2.602 2.105 6.395 2.105 8.996 0c2.602 -2.105 3.262 -5.708 1.566 -8.546l-4.89 -7.26c-.42 -.625 -1.287 -.803 -1.936 -.397a1.376 1.376 0 0 0 -.41 .397l-4.893 7.26c-1.695 2.838 -1.035 6.441 1.567 8.546z" />',
+  wind: '<path d="M5 8h8.5a2.5 2.5 0 1 0 -2.34 -3.24" /><path d="M3 12h15.5a2.5 2.5 0 1 1 -2.34 3.24" /><path d="M4 16h5.5a2.5 2.5 0 1 1 -2.34 3.24" />',
+  mountain: '<path d="M3 20h18l-6.921 -14.612a2.3 2.3 0 0 0 -4.158 0l-6.921 14.612z" /><path d="M7.5 11l2 2.5l2.5 -2.5l2 3l2.5 -2" />',
+  sun: '<path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />',
+  cloud: '<path d="M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878" />',
+  'cloud-rain': '<path d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7" /><path d="M11 13v2m0 3v2m4 -5v2m0 3v2" />',
+  bolt: '<path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11" />',
+  snowflake: '<path d="M10 4l2 1l2 -1" /><path d="M12 2v6.5l3 1.72" /><path d="M17.928 6.268l.134 2.232l1.866 1.232" /><path d="M20.66 7l-5.629 3.25l.01 3.458" /><path d="M19.928 14.268l-1.866 1.232l-.134 2.232" /><path d="M20.66 17l-5.629 -3.25l-2.99 1.738" /><path d="M14 20l-2 -1l-2 1" /><path d="M12 22v-6.5l-3 -1.72" /><path d="M6.072 17.732l-.134 -2.232l-1.866 -1.232" /><path d="M3.34 17l5.629 -3.25l-.01 -3.458" /><path d="M4.072 9.732l1.866 -1.232l.134 -2.232" /><path d="M3.34 7l5.629 3.25l2.99 -1.738" />',
+  'sun-high': '<path d="M14.828 14.828a4 4 0 1 0 -5.656 -5.656a4 4 0 0 0 5.656 5.656z" /><path d="M6.343 17.657l-1.414 1.414" /><path d="M6.343 6.343l-1.414 -1.414" /><path d="M17.657 6.343l1.414 -1.414" /><path d="M17.657 17.657l1.414 1.414" /><path d="M4 12h-2" /><path d="M12 4v-2" /><path d="M20 12h2" /><path d="M12 20v2" />',
+  'temperature-minus': '<path d="M8 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5" /><path d="M8 9l4 0" /><path d="M16 9l6 0" />',
+  'map-pin': '<path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" />',
+  'current-location': '<path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" /><path d="M12 2l0 2" /><path d="M12 20l0 2" /><path d="M20 12l2 0" /><path d="M2 12l2 0" />',
+  mist: '<path d="M5 5h3m4 0h9" /><path d="M3 10h11m4 0h1" /><path d="M5 15h5m4 0h7" /><path d="M3 20h9m4 0h3" />',
+  award: '<path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" />',
+  trash: '<path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />',
+  bulb: '<path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /><path d="M9.7 17l4.6 0" />',
+  'target-arrow': '<path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 7a5 5 0 1 0 5 5" /><path d="M13 3.055a9 9 0 1 0 7.941 7.945" /><path d="M15 6v3h3l3 -3h-3v-3z" /><path d="M15 9l-3 3" />'
+};
+function iconSVG(name, size, strokeWidth){
+  size = size || 18;
+  strokeWidth = strokeWidth || 1.75;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+strokeWidth+'" stroke-linecap="round" stroke-linejoin="round">'+(ICON_PATHS[name]||'')+'</svg>';
+}
+
+/* ================= Weather ================= */
+var WEATHER_CODE_INFO = {
+  0:{desc:'ท้องฟ้าโปร่ง', icon:'sun', cat:'clear'},
+  1:{desc:'แจ่มใสเป็นส่วนใหญ่', icon:'sun', cat:'clear'},
+  2:{desc:'มีเมฆบางส่วน', icon:'cloud', cat:'cloudy'},
+  3:{desc:'เมฆมาก', icon:'cloud', cat:'cloudy'},
+  45:{desc:'มีหมอก', icon:'mist', cat:'fog'},
+  48:{desc:'หมอกน้ำแข็ง', icon:'mist', cat:'fog'},
+  51:{desc:'ฝนละอองปรอยเบา', icon:'cloud-rain', cat:'rain'},
+  53:{desc:'ฝนละอองปรอย', icon:'cloud-rain', cat:'rain'},
+  55:{desc:'ฝนละอองปรอยหนัก', icon:'cloud-rain', cat:'rain'},
+  56:{desc:'ฝนละอองเยือกแข็ง', icon:'cloud-rain', cat:'rain'},
+  57:{desc:'ฝนละอองเยือกแข็งหนัก', icon:'cloud-rain', cat:'rain'},
+  61:{desc:'ฝนตกเบา', icon:'cloud-rain', cat:'rain'},
+  63:{desc:'ฝนตก', icon:'cloud-rain', cat:'rain'},
+  65:{desc:'ฝนตกหนัก', icon:'cloud-rain', cat:'rain'},
+  66:{desc:'ฝนเยือกแข็ง', icon:'cloud-rain', cat:'rain'},
+  67:{desc:'ฝนเยือกแข็งหนัก', icon:'cloud-rain', cat:'rain'},
+  71:{desc:'หิมะตกเบา', icon:'snowflake', cat:'snow'},
+  73:{desc:'หิมะตก', icon:'snowflake', cat:'snow'},
+  75:{desc:'หิมะตกหนัก', icon:'snowflake', cat:'snow'},
+  77:{desc:'เกล็ดหิมะ', icon:'snowflake', cat:'snow'},
+  80:{desc:'ฝนตกเป็นช่วงเบา', icon:'cloud-rain', cat:'rain'},
+  81:{desc:'ฝนตกเป็นช่วง', icon:'cloud-rain', cat:'rain'},
+  82:{desc:'ฝนตกเป็นช่วงหนัก', icon:'cloud-rain', cat:'rain'},
+  85:{desc:'หิมะตกเป็นช่วงเบา', icon:'snowflake', cat:'snow'},
+  86:{desc:'หิมะตกเป็นช่วงหนัก', icon:'snowflake', cat:'snow'},
+  95:{desc:'พายุฝนฟ้าคะนอง', icon:'bolt', cat:'storm'},
+  96:{desc:'พายุฝนฟ้าคะนองมีลูกเห็บ', icon:'bolt', cat:'storm'},
+  99:{desc:'พายุฝนฟ้าคะนองรุนแรง', icon:'bolt', cat:'storm'}
+};
+function getWeatherCodeInfo(code){ return WEATHER_CODE_INFO[code] || {desc:'สภาพอากาศทั่วไป', icon:'cloud', cat:'cloudy'}; }
+
+function fetchWeatherData(lat, lng){
+  var forecastUrl = 'https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lng+
+    '&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,uv_index,is_day'+
+    '&daily=sunrise,sunset,uv_index_max,precipitation_probability_max,precipitation_sum,temperature_2m_max,temperature_2m_min'+
+    '&timezone=auto&forecast_days=1';
+  var airUrl = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+lat+'&longitude='+lng+'&current=pm2_5,us_aqi';
+
+  var forecastP = fetch(forecastUrl).then(function(r){ if(!r.ok) throw new Error('forecast failed'); return r.json(); });
+  var airP = fetch(airUrl).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+
+  return Promise.all([forecastP, airP]).then(function(results){
+    var f = results[0], a = results[1];
+    return {
+      temp: f.current.temperature_2m,
+      humidity: f.current.relative_humidity_2m,
+      precipNow: f.current.precipitation,
+      weatherCode: f.current.weather_code,
+      windSpeed: f.current.wind_speed_10m,
+      uvIndexNow: f.current.uv_index,
+      isDay: f.current.is_day===1,
+      precipProbMax: f.daily.precipitation_probability_max[0],
+      precipSum: f.daily.precipitation_sum[0],
+      uvIndexMax: f.daily.uv_index_max[0],
+      tempMax: f.daily.temperature_2m_max[0],
+      tempMin: f.daily.temperature_2m_min[0],
+      sunrise: f.daily.sunrise[0],
+      sunset: f.daily.sunset[0],
+      pm25: (a && a.current) ? a.current.pm2_5 : null,
+      aqi: (a && a.current) ? a.current.us_aqi : null
+    };
+  });
+}
+function geocodeCity(name){
+  var url = 'https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(name)+'&count=1&language=th&format=json';
+  return fetch(url).then(function(r){ return r.json(); }).then(function(data){
+    if(!data.results || !data.results.length) throw new Error('not found');
+    var res = data.results[0];
+    var label = res.name + (res.admin1 && res.admin1!==res.name ? ', '+res.admin1 : '');
+    return {lat:res.latitude, lng:res.longitude, label:label};
+  });
+}
+function requestGeolocation(){
+  return new Promise(function(resolve, reject){
+    if(!navigator.geolocation){ reject(new Error('no geolocation')); return; }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      resolve({lat:pos.coords.latitude, lng:pos.coords.longitude, label:'ตำแหน่งปัจจุบัน'});
+    }, function(err){ reject(err); }, {timeout:10000, maximumAge:3600000});
+  });
+}
+var DEFAULT_LOCATION = {lat:13.7563, lng:100.5018, label:'กรุงเทพฯ (ค่าเริ่มต้น)'};
+
+function weatherColorInfo(weather){
+  if(!weather) return {name:'เขียวสด', hex:'#5B9C4A'};
+  var wc = getWeatherCodeInfo(weather.weatherCode);
+  var now = new Date();
+  if(weather.sunrise){
+    var sunriseTime = new Date(weather.sunrise);
+    if(Math.abs(now-sunriseTime) < 40*60*1000) return {name:'ฟ้ารุ่งอรุณ', hex:'#E8B4A8'};
+  }
+  if(wc.cat==='storm') return {name:'ฟ้าครึ้มเข้ม', hex:'#5A7285'};
+  if(wc.cat==='rain') return {name:'เทาน้ำเงิน', hex:'#7C97A8'};
+  if(wc.cat==='fog') return {name:'เทาหมอก', hex:'#A9B39C'};
+  if(wc.cat==='cloudy') return {name:'เทาอมฟ้า', hex:'#8FA5AC'};
+  if(weather.uvIndexNow>=6) return {name:'แดดจัดฟ้าใส', hex:'#E8A83A'};
+  return {name:'ฟ้าใส', hex:'#5B9C4A'};
+}
+function weatherHighlight(weather){
+  if(!weather) return {label:'ไม่มีข้อมูลอากาศ', icon:'cloud'};
+  var candidates = [];
+  if(weather.windSpeed>=20) candidates.push({score:weather.windSpeed, label:'วันนี้ลมแรง', icon:'wind'});
+  if(weather.humidity>=80) candidates.push({score:weather.humidity, label:'วันนี้ชื้น', icon:'droplet'});
+  if(weather.uvIndexMax>=8) candidates.push({score:weather.uvIndexMax*10, label:'วันนี้แดดแรง', icon:'sun-high'});
+  if(weather.temp<=20) candidates.push({score:(20-weather.temp)*5, label:'วันนี้อากาศเย็น', icon:'temperature-minus'});
+  if(!candidates.length) return {label:'อากาศปกติวันนี้', icon:'cloud'};
+  candidates.sort(function(a,b){ return b.score-a.score; });
+  return candidates[0];
+}
+
+/* ================= Content: Principles / Tips / Affirmations ================= */
+var PRINCIPLES = [
+  {id:'opportunities', name:'สร้างโอกาส', icon:'world', action:'สร้างโอกาสใหม่ๆ'},
+  {id:'intuition', name:'ฟังสัญชาตญาณ', icon:'headphones', action:'ฟังเสียงภายในตัวเอง'},
+  {id:'positivity', name:'คาดหวังเชิงบวก', icon:'sparkles', action:'ตั้งความหวังเชิงบวก'},
+  {id:'resilience', name:'พลิกวิกฤต', icon:'refresh', action:'มองหาโอกาสในอุปสรรค'}
+];
+var PRINCIPLE_IDS = PRINCIPLES.map(function(p){return p.id;});
+function principleById(id){ return PRINCIPLES.filter(function(p){return p.id===id;})[0]; }
+
+var TIPS = {
+  opportunities:[
+    'ทักทายคนที่ไม่ได้คุยด้วยนานแล้ว 1 คน',
+    'ลองเส้นทาง ร้าน หรือสถานที่ที่ไม่เคยไป',
+    'ตอบรับคำชวนที่กำลังลังเลอยู่',
+    'ถามคำถามที่อยากรู้แต่ไม่เคยถามใครสักคน',
+    'อ่าน/ฟังเรื่องนอกสายที่ถนัดสัก 1 เรื่อง',
+    'ทักทายคนแปลกหน้าที่เจอวันนี้สั้นๆ',
+    'ลองทำสิ่งที่ตั้งใจจะทำมานานแต่ยังไม่ได้เริ่ม แม้แค่ก้าวเล็กๆ',
+    'เข้าร่วมกิจกรรม/กลุ่มที่ไม่เคยเข้าร่วมมาก่อน แม้แค่ครั้งเดียว',
+    'แชร์ไอเดียหรือความคิดเห็นที่ปกติเก็บไว้คนเดียว',
+    'สังเกตสิ่งรอบตัววันนี้ที่ปกติมองข้าม แล้วลองถามว่า "ทำไม"'
+  ],
+  intuition:[
+    'ก่อนตัดสินใจ ลองหยุดหายใจลึกๆ แล้วถามความรู้สึกแรก',
+    'จดบันทึกลางสังหรณ์ที่ผุดขึ้นมาวันนี้ ไม่ต้องตัดสินว่าถูกผิด',
+    'เลือกฟังเสียงในใจก่อนเสียงรอบข้างสักครั้งวันนี้',
+    'สังเกตความรู้สึกในร่างกายเวลาต้องตัดสินใจเรื่องเล็กๆ',
+    'ให้เวลาตัวเองสัก 1 นาทีก่อนตอบคำถามสำคัญ',
+    'ลองตัดสินใจเรื่องเล็กๆ ด้วยสัญชาตญาณแทนการวิเคราะห์',
+    'สังเกตว่าเรื่องไหนวันนี้ทำให้รู้สึก "ไม่ค่อยใช่" แม้เหตุผลจะบอกว่าดี',
+    'อยู่เงียบๆ กับตัวเองสักครู่ก่อนเริ่มงานสำคัญ'
+  ],
+  positivity:[
+    'เขียนสิ่งที่รู้สึกขอบคุณวันนี้สักหนึ่งอย่าง',
+    'เริ่มเช้านี้ด้วยการนึกถึงสิ่งดีๆ ที่อาจเกิดขึ้น',
+    'พูดกับตัวเองด้วยคำที่ให้กำลังใจ แทนคำตำหนิ',
+    'มองหาสิ่งที่ไปได้ดีในวันนี้ ก่อนเข้านอน',
+    'ตั้งใจยิ้มให้คนที่เจอวันนี้สักสามคน',
+    'เปลี่ยนคำว่า "ต้องทำ" เป็น "ได้ทำ" ในใจสักครั้ง',
+    'นึกถึงช่วงเวลาที่ผ่านมาด้วยดี แทนที่จะกังวลล่วงหน้า',
+    'ให้กำลังใจคนรอบตัวสักหนึ่งคนวันนี้'
+  ],
+  resilience:[
+    'นึกถึงอุปสรรคที่เคยเจอ แล้วมองว่ามันสอนอะไรบ้าง',
+    'ถ้าวันนี้มีเรื่องไม่เป็นไปตามแผน ลองถามว่า "มีทางออกอะไรบ้าง"',
+    'เขียนสิ่งที่ยากวันนี้ แล้วมองหาแง่มุมที่พอรับได้',
+    'แทนที่จะโทษสถานการณ์ ลองถามว่าตัวเองทำอะไรได้บ้าง',
+    'ให้เวลาตัวเองยอมรับความรู้สึกแย่ ก่อนจะหาทางแก้',
+    'มองปัญหาวันนี้เป็นข้อมูล ไม่ใช่คำตัดสินตัวเอง',
+    'ถามตัวเองว่าเรื่องนี้จะสำคัญแค่ไหนในอีกหนึ่งปี',
+    'หาบทเรียนหนึ่งอย่างจากความผิดพลาดล่าสุด'
+  ]
+};
+
+var AFFIRMATIONS = {
+  opportunities:[
+    'วันนี้ฉันกล้าเริ่มต้นสิ่งใหม่ด้วยตัวเอง',
+    'ฉันเปิดใจรับโอกาสที่เข้ามาโดยไม่คาดคิด',
+    'ก้าวเล็กๆ ของฉันวันนี้พาไปเจอสิ่งใหม่ได้เสมอ',
+    'ฉันมีพลังที่จะนำทางวันนี้ด้วยความมั่นใจ',
+    'โลกรอบตัวฉันมีโอกาสซ่อนอยู่มากกว่าที่คิด',
+    'ฉันไม่ต้องรอให้พร้อมที่สุดก่อนจะลองสักครั้ง',
+    'ทุกบทสนทนาใหม่คือประตูที่เปิดออกได้',
+    'ฉันเลือกออกจากเส้นทางเดิมบ้างในวันนี้'
+  ],
+  intuition:[
+    'ฉันฟังเสียงของตัวเองและผู้อื่นด้วยใจเปิด',
+    'ฉันไว้ใจสัญชาตญาณและความรู้สึกแรกของตัวเอง',
+    'ฉันให้เวลากับความเงียบเพื่อฟังตัวเองมากขึ้น',
+    'คำตอบบางอย่างรอฉันอยู่ในความสงบ',
+    'ฉันไม่ต้องรีบ ทุกอย่างค่อยๆ ลงตัวได้',
+    'ฉันเชื่อมั่นในกระบวนการเรียนรู้ของตัวเอง',
+    'ความรู้สึกของฉันเป็นข้อมูลที่มีค่าเสมอ',
+    'ฉันอนุญาตให้ตัวเองหยุดฟังใจก่อนตัดสินใจ'
+  ],
+  positivity:[
+    'วันนี้ฉันเลือกมองโลกด้วยรอยยิ้ม',
+    'ฉันขอบคุณสิ่งเล็กๆ ที่เกิดขึ้นระหว่างวัน',
+    'ฉันอนุญาตให้ตัวเองแสดงออกอย่างที่เป็น',
+    'ความคิดบวกของฉันเริ่มต้นได้ทุกเช้า',
+    'ฉันเลือกให้กำลังใจตัวเองก่อนใครอื่น',
+    'สิ่งดีๆ กำลังก่อตัวขึ้นแม้ฉันจะยังมองไม่เห็น',
+    'ฉันภูมิใจในความพยายามเล็กๆ ของตัวเอง',
+    'วันนี้ฉันเลือกเชื่อว่าสิ่งต่างๆ จะค่อยๆ ดีขึ้น'
+  ],
+  resilience:[
+    'ฉันมองปัญหาวันนี้เป็นบทเรียน ไม่ใช่จุดจบ',
+    'ฉันปล่อยวางสิ่งที่ควบคุมไม่ได้ และดูแลสิ่งที่ทำได้',
+    'ทุกอุปสรรคสอนบางอย่างให้ฉันเสมอ',
+    'ฉันเข้มแข็งพอที่จะเริ่มใหม่ในวันที่ยาก',
+    'ฉันให้เวลาตัวเองรู้สึกแย่ได้ ก่อนจะลุกขึ้นใหม่',
+    'ความท้าทายวันนี้กำลังสร้างฉันให้แข็งแรงขึ้น',
+    'ฉันเลือกมองหาทางออก แทนการจมอยู่กับปัญหา',
+    'ฉันผ่านวันที่ยากมาได้เสมอ วันนี้ก็เช่นกัน'
+  ]
+};
+
+/* ================= Growth content banks ================= */
+var SPOTTING_QUESTIONS = [
+  'วันนี้มองหา 1 ปัญหาที่คนบ่นแต่ยังไม่มีใครแก้',
+  'สังเกตธุรกิจ 1 อย่างที่คุณผ่านวันนี้ แล้วลองคิดว่าเขาทำเงินยังไง',
+  'มีอะไรที่คุณอยากให้มีอยู่ แต่ยังไม่มีใครทำไหม',
+  'วันนี้มีใครขอให้คุณช่วยอะไรที่อาจกลายเป็นไอเดียได้ไหม',
+  'ลองนึกถึงงานที่คุณทำซ้ำบ่อยๆ มีขั้นตอนไหนที่น่าจะทำให้ง่ายขึ้นได้',
+  'มีคำถามอะไรที่คนมักถามคุณซ้ำๆ ไหม',
+  'วันนี้เจอบริการอะไรที่รู้สึกว่า "ทำไมยังไม่มีคนทำแบบนี้"',
+  'ลองดูสิ่งที่คุณซื้อบ่อยที่สุดเดือนนี้ มีช่องว่างอะไรในตลาดนั้นไหม',
+  'มีใครในชีวิตที่กำลังมีปัญหาที่คุณอาจช่วยแก้ได้บ้าง',
+  'วันนี้ลองถามคนรอบตัวว่าเขาอยากได้อะไรที่ยังไม่มี',
+  'สังเกตคิวหรือความล่าช้าที่เจอวันนี้ มีทางทำให้เร็วขึ้นไหม',
+  'มีเทรนด์อะไรที่คุณสังเกตเห็นบ่อยขึ้นช่วงนี้',
+  'ลองมองงานอดิเรกของคุณ มีใครน่าจะยอมจ่ายเงินเพื่อสิ่งนั้นไหม',
+  'วันนี้มีอะไรที่ทำให้คุณหงุดหงิดเล็กๆ ลองคิดว่าทำไมยังไม่มีคนแก้',
+  'ลองนึกถึงคนที่คุณชื่นชม เขาแก้ปัญหาอะไรให้โลกบ้าง'
+];
+var SKILL_PROMPTS = [
+  'วันนี้ลองอธิบายสิ่งที่เพิ่งเรียนรู้ให้คนอื่นฟังใน 1 ประโยค',
+  'หาตัวอย่างจริงของทักษะนี้ที่คนอื่นใช้ได้ดี 1 ตัวอย่าง',
+  'ลองฝึกทักษะนี้ 10 นาทีแบบตั้งใจ ไม่มีสิ่งรบกวน',
+  'นึกถึงความผิดพลาดล่าสุดที่เกี่ยวกับทักษะนี้ แล้วเขียนสิ่งที่เรียนรู้',
+  'หาคลิป/บทความสั้นๆ เกี่ยวกับทักษะนี้ 1 ชิ้น',
+  'ลองสอนหรือแบ่งปันเทคนิคเล็กๆ ที่รู้ให้คนอื่นฟัง',
+  'ถามตัวเองว่าวันนี้ใช้ทักษะนี้ตรงไหนได้บ้าง',
+  'จดสิ่งที่ยังไม่เข้าใจเกี่ยวกับทักษะนี้ไว้ 1 ข้อ',
+  'ลองเปรียบเทียบตัวเองวันนี้กับเมื่อเริ่มฝึกทักษะนี้ใหม่ๆ',
+  'ตั้งเป้าเล็กๆ ที่จะลองทำพรุ่งนี้เกี่ยวกับทักษะนี้'
+];
+var WEEKLY_CHALLENGES = [
+  'ลองเสนอไอเดียให้คนอื่นฟัง 1 คน',
+  'หาข้อมูลธุรกิจประเภทที่ไม่เคยรู้จักมาก่อน 1 ประเภท',
+  'อ่านเคสธุรกิจที่ล้มเหลว 1 เคส แล้วสรุปว่าเรียนรู้อะไร',
+  'คำนวณคร่าวๆ ว่าไอเดียในคลังของคุณ 1 อย่างจะทำเงินยังไง',
+  'ลองเขียนบรรยายไอเดียคุณใน 1 ประโยคให้คนที่ไม่รู้เรื่องเข้าใจ',
+  'หาคนที่ทำธุรกิจที่คุณสนใจ แล้วลองส่งข้อความไปทักทาย',
+  'ดูรีวิวลูกค้าที่ไม่พอใจของธุรกิจหนึ่ง แล้วคิดว่าจะแก้อย่างไร',
+  'ลองประเมินคู่แข่งของไอเดียคุณ 1 ราย',
+  'เขียนข้อดี-ข้อเสียของไอเดียที่ชอบที่สุดในคลัง',
+  'หาสถิติหรือตัวเลขที่เกี่ยวกับตลาดที่คุณสนใจ 1 ตัว',
+  'ลองร่างงบประมาณคร่าวๆ ของไอเดีย 1 อย่าง',
+  'สัมภาษณ์คนใกล้ตัว 1 คนว่าเขาจะจ่ายเงินเพื่อไอเดียคุณไหม',
+  'ทบทวนไอเดียเก่าที่เคยทิ้งไว้ แล้วดูว่ายังน่าสนใจไหม',
+  'ลองออกแบบโลโก้หรือชื่อให้ไอเดีย 1 อย่างแบบคร่าวๆ',
+  'หาช่องทางขายที่ไม่เคยคิดถึงมาก่อนสำหรับไอเดียคุณ',
+  'เขียนอีเมล/ข้อความแนะนำไอเดียของคุณสั้นๆ (ไม่ต้องส่งจริงก็ได้)',
+  'ลองประเมินว่าไอเดียไหนในคลังทำได้เร็วที่สุด',
+  'ฟังพอดแคสต์หรืออ่านบทความธุรกิจ 1 ตอน',
+  'จดข้อจำกัดของตัวเองที่อาจเป็นอุปสรรคต่อไอเดีย แล้วคิดทางแก้',
+  'ตั้งคำถามให้ตัวเอง "ถ้าไม่กลัวล้มเหลว จะทำอะไรก่อน"'
+];
+
+/* ================= Storage ================= */
+var K = {
+  location:'rak_location',
+  schedule:'rak_weeklySchedule',
+  dailyLog:'rak_dailyLog',
+  streak:'rak_streak',
+  weights:'rak_principleWeights',
+  conditionWeights:'rak_conditionWeights',
+  lastWeekly:'rak_lastWeeklyReflection',
+  weeklyReflections:'rak_weeklyReflections',
+  lastMonthly:'rak_lastMonthlyStory',
+  monthlyStories:'rak_monthlyStories',
+  growthSkill:'rak_growthSkill',
+  skillHistory:'rak_skillHistory',
+  ideaVault:'rak_ideaVault',
+  spottingLog:'rak_opportunitySpottingLog',
+  challengeLog:'rak_weeklyChallengeLog',
+  lastIdeaResurface:'rak_lastIdeaResurface'
+};
+function getJSON(key, fallback){
+  try{ var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
+}
+function setJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+function getLocation(){ return getJSON(K.location, null); }
+function setLocation(loc){ setJSON(K.location, loc); }
+var SCHEDULE_KEYS_BY_GETDAY = ['sun','mon','tue','wed','thu','fri','sat'];
+var SCHEDULE_LABELS = {sun:'อา',mon:'จ',tue:'อ',wed:'พ',thu:'พฤ',fri:'ศ',sat:'ส'};
+var SCHEDULE_DISPLAY_ORDER = ['mon','tue','wed','thu','fri','sat','sun'];
+function getSchedule(){
+  return getJSON(K.schedule, {sun:'free',mon:'free',tue:'free',wed:'free',thu:'free',fri:'free',sat:'free'});
+}
+function setSchedule(s){ setJSON(K.schedule, s); }
+function getDailyLog(){ return getJSON(K.dailyLog, []); }
+function setDailyLog(v){ setJSON(K.dailyLog, v); }
+function getStreak(){ return getJSON(K.streak, {currentStreak:0, totalDays:0, lastActiveDate:null}); }
+function setStreak(v){ setJSON(K.streak, v); }
+function getWeights(){ return getJSON(K.weights, {opportunities:1, intuition:1, positivity:1, resilience:1}); }
+function setWeights(v){ setJSON(K.weights, v); }
+
+/* ================= Time of day ================= */
+function getTimeOfDay(hour){
+  if(hour>=5 && hour<11) return 'morning';
+  if(hour>=11 && hour<17) return 'afternoon';
+  if(hour>=17 && hour<21) return 'evening';
+  return 'night';
+}
+
+/* ================= Today state ================= */
+var todayDate = new Date();
+var todayStr = formatDateLocal(todayDate);
+var dailyLog = [];
+var todayEntry = null;
+
+function findEntry(dateStr){
+  for(var i=0;i<dailyLog.length;i++){ if(dailyLog[i].date===dateStr) return dailyLog[i]; }
+  return null;
+}
+
+function computeEffectiveWeights(){
+  var w = getWeights();
+  var out = {};
+  PRINCIPLE_IDS.forEach(function(id){
+    var base = w[id] || 1;
+    var lastDone = null;
+    for(var i=dailyLog.length-1;i>=0;i--){
+      var e = dailyLog[i];
+      if(!e.tips) continue;
+      for(var j=0;j<e.tips.length;j++){
+        if(e.tips[j].principle===id && e.completed && e.completed[j]){ lastDone = e.date; break; }
+      }
+      if(lastDone) break;
+    }
+    var neglected = false;
+    if(!lastDone && dailyLog.length>=14){ neglected = true; }
+    else if(lastDone){
+      var gap = daysBetween(todayDate, parseDateLocal(lastDone));
+      if(gap>=14) neglected = true;
+    }
+    out[id] = base * (neglected ? 1.8 : 1);
+  });
+  return out;
+}
+
+function pickTipsForDay(seedRng, weights, principleOfDayId){
+  var w = PRINCIPLE_IDS.map(function(id){ return weights[id] * (id===principleOfDayId ? 1.5 : 1); });
+  var totalW = w.reduce(function(a,b){return a+b;},0);
+  var chosen = [];
+  var usedKeys = {};
+  var guard = 0;
+  while(chosen.length<3 && guard<80){
+    guard++;
+    var r = seedRng()*totalW;
+    var acc = 0, idx = 0;
+    for(var i=0;i<w.length;i++){ acc+=w[i]; if(r<=acc){ idx=i; break; } }
+    var pid = PRINCIPLE_IDS[idx];
+    var pool = TIPS[pid];
+    var tipIdx = Math.floor(seedRng()*pool.length);
+    var key = pid+'_'+tipIdx;
+    if(!usedKeys[key]){
+      usedKeys[key] = true;
+      chosen.push({principle:pid, text:pool[tipIdx]});
+    }
+  }
+  return chosen;
+}
+
+/* ================= Analysis engine ================= */
+var REASON_LABELS = {
+  pleasant:'อากาศเย็นสบาย',
+  freeDay:'วันนี้คุณว่าง',
+  afternoon:'เป็นช่วงบ่าย',
+  busyDay:'วันนี้เป็นวันงานหนัก',
+  calmMorning:'ช่วงเช้าที่ใจสงบ',
+  calmNight:'ช่วงก่อนนอนที่ใจสงบ',
+  harshWeather:'อากาศข้างนอกไม่ค่อยเป็นใจ',
+  harshWeatherPositive:'แม้อากาศจะไม่เป็นใจวันนี้',
+  morningStart:'เป็นช่วงเริ่มต้นวัน',
+  challengingWeather:'สภาพอากาศท้าทายวันนี้',
+  busyAndHarsh:'ทั้งวันงานหนักและอากาศไม่เป็นใจ'
+};
+
+function analyzeToday(weather, isBusyDay, timeOfDay, conditionWeights){
+  var scores = {opportunities:0, intuition:0, positivity:0, resilience:0};
+  var tags = {opportunities:[], intuition:[], positivity:[], resilience:[]};
+  function add(pid, pts, tag){ scores[pid]+=pts; if(tag) tags[pid].push(tag); }
+
+  var wc = getWeatherCodeInfo(weather.weatherCode);
+  var pleasant = weather.temp>=20 && weather.temp<=28 && weather.precipProbMax<30 && weather.windSpeed<20 && wc.cat!=='rain' && wc.cat!=='storm';
+  var harsh = weather.precipProbMax>=60 || wc.cat==='storm' || weather.temp>=35 || weather.temp<=16 || weather.windSpeed>=30 || (weather.pm25!=null && weather.pm25>=35);
+  var calmTime = timeOfDay==='morning' || timeOfDay==='night';
+
+  if(pleasant) add('opportunities',3,'pleasant');
+  if(!isBusyDay) add('opportunities',2,'freeDay');
+  if(harsh) scores.opportunities-=2;
+  if(timeOfDay==='afternoon') add('opportunities',1,'afternoon');
+
+  if(isBusyDay) add('intuition',3,'busyDay');
+  if(calmTime) add('intuition',2, timeOfDay==='morning'?'calmMorning':'calmNight');
+  if(harsh) add('intuition',2,'harshWeather');
+
+  if(harsh) add('positivity',2,'harshWeatherPositive');
+  if(timeOfDay==='morning') add('positivity',1,'morningStart');
+
+  if(harsh) add('resilience',3,'challengingWeather');
+  if(isBusyDay && harsh) add('resilience',2,'busyAndHarsh');
+
+  PRINCIPLE_IDS.forEach(function(pid){
+    tags[pid].forEach(function(tag){
+      var key = pid+':'+tag;
+      if(conditionWeights[key]) scores[pid] += conditionWeights[key]*0.5;
+    });
+  });
+
+  var top = PRINCIPLE_IDS.reduce(function(a,b){ return scores[b]>scores[a] ? b : a; });
+  var topTags = tags[top];
+  var reasonText;
+  if(topTags.length){
+    var phrases = topTags.slice(0,2).map(function(t){ return REASON_LABELS[t]; }).filter(Boolean);
+    reasonText = phrases.join(' และ') + ' เหมาะกับการ' + principleById(top).action;
+  } else {
+    reasonText = 'วันนี้ลองโฟกัสด้าน '+principleById(top).name+' ดูไหม';
+  }
+  return {principleOfDay:top, reasonText:reasonText, reasonTags:topTags};
+}
+
+function buildFallbackAnalysis(seed){
+  var pid = PRINCIPLE_IDS[seed % PRINCIPLE_IDS.length];
+  return {principleOfDay:pid, reasonText:'วันนี้ลองโฟกัสด้าน '+principleById(pid).name+' ดูไหม', reasonTags:[]};
+}
+
+function bumpConditionWeights(entry){
+  if(!entry.reasonTags || !entry.reasonTags.length) return;
+  var cw = getJSON(K.conditionWeights, {});
+  entry.reasonTags.forEach(function(tag){
+    var key = entry.principleOfDay+':'+tag;
+    cw[key] = Math.min(5, (cw[key]||0) + 0.3);
+  });
+  setJSON(K.conditionWeights, cw);
+}
+
+function buildTodayEntry(location){
+  var timeOfDay = getTimeOfDay(new Date().getHours());
+  var schedule = getSchedule();
+  var isBusyDay = schedule[SCHEDULE_KEYS_BY_GETDAY[todayDate.getDay()]] === 'busy';
+  var conditionWeights = getJSON(K.conditionWeights, {});
+  var seed = hashString(todayStr);
+
+  function finish(weather){
+    var rng = mulberry32(seed);
+    var analysis = weather ? analyzeToday(weather, isBusyDay, timeOfDay, conditionWeights) : buildFallbackAnalysis(seed);
+    var affPool = AFFIRMATIONS[analysis.principleOfDay];
+    var affirmation = affPool[Math.floor(rng()*affPool.length)];
+    var weights = computeEffectiveWeights();
+    var tips = pickTipsForDay(rng, weights, analysis.principleOfDay);
+    return {
+      date: todayStr,
+      weather: weather,
+      moonPhaseValue: getMoonPhaseValue(todayDate),
+      principleOfDay: analysis.principleOfDay,
+      reasonText: analysis.reasonText,
+      reasonTags: analysis.reasonTags,
+      affirmation: affirmation,
+      tips: tips,
+      completed: tips.map(function(){return false;}),
+      journalEntry: '',
+      microIntuition: ''
+    };
+  }
+
+  return fetchWithTimeout(function(){ return fetchWeatherData(location.lat, location.lng); }, 8000)
+    .then(function(weather){ return finish(weather); })
+    .catch(function(){ return finish(null); });
+}
+
+function getOrCreateTodayEntry(location){
+  var existing = findEntry(todayStr);
+  if(existing) return Promise.resolve(existing);
+  return buildTodayEntry(location).then(function(entry){
+    dailyLog.push(entry);
+    setDailyLog(dailyLog);
+    return entry;
+  });
+}
+
+/* ================= Streak ================= */
+function computeDisplayStreak(){
+  var s = getStreak();
+  if(!s.lastActiveDate) return {display:0, total:s.totalDays, away:false};
+  var gap = daysBetween(todayDate, parseDateLocal(s.lastActiveDate));
+  var display = gap<=1 ? s.currentStreak : 0;
+  return {display:display, total:s.totalDays, away: gap>=3};
+}
+function registerActivity(){
+  var s = getStreak();
+  if(s.lastActiveDate===todayStr) return;
+  if(s.lastActiveDate){
+    var gap = daysBetween(todayDate, parseDateLocal(s.lastActiveDate));
+    s.currentStreak = (gap===1) ? s.currentStreak+1 : 1;
+  } else {
+    s.currentStreak = 1;
+  }
+  s.totalDays = (s.totalDays||0) + 1;
+  s.lastActiveDate = todayStr;
+  setStreak(s);
+  renderStreak();
+  renderHeaderStreak();
+}
+
+/* ================= Rendering: Today ================= */
+function renderHero(){
+  document.getElementById('hero-date').textContent = formatThaiDate(todayDate);
+  var w = todayEntry.weather;
+  var numberEl = document.getElementById('hero-number');
+  var labelEl = document.getElementById('hero-number-label');
+  if(w){
+    numberEl.textContent = Math.round(w.temp);
+    labelEl.textContent = 'เลขวันนี้';
+  } else {
+    numberEl.textContent = '–';
+    labelEl.textContent = 'ไม่มีข้อมูลวันนี้';
+  }
+  document.getElementById('hero-reason').textContent = todayEntry.reasonText;
+
+  var color = weatherColorInfo(w);
+  document.getElementById('hero-color-dot').style.background = color.hex;
+  document.getElementById('hero-color-name').textContent = color.name;
+
+  document.getElementById('hero-moon-icon').innerHTML = moonPhaseIconSVG(todayEntry.moonPhaseValue, 18);
+  document.getElementById('hero-moon-name').textContent = getMoonDayLabel(todayEntry.moonPhaseValue);
+
+  var hl = weatherHighlight(w);
+  document.getElementById('hero-highlight-icon').innerHTML = iconSVG(hl.icon, 18);
+  document.getElementById('hero-highlight-name').textContent = hl.label;
+}
+
+function renderPrinciples(){
+  var grid = document.getElementById('principles-grid');
+  grid.innerHTML = '';
+  PRINCIPLES.forEach(function(p){
+    var isToday = p.id===todayEntry.principleOfDay;
+    var card = document.createElement('div');
+    card.className = 'principle-card'+(isToday?' today':'');
+    card.innerHTML =
+      '<div class="principle-icon-wrap">'+iconSVG(p.icon, 20)+'</div>'+
+      '<div class="principle-name">'+p.name+'</div>'+
+      (isToday
+        ? '<div class="principle-tag active">เด่นวันนี้</div><div class="principle-reason">เพราะ'+todayEntry.reasonText.split(' เหมาะกับ')[0]+'</div>'
+        : '<div class="principle-tag">ปกติ</div>');
+    grid.appendChild(card);
+  });
+}
+
+function renderAffirmation(){
+  document.getElementById('affirmation-text').textContent = todayEntry.affirmation;
+}
+
+function renderTips(){
+  var list = document.getElementById('tips-list');
+  list.innerHTML = '';
+  todayEntry.tips.forEach(function(tip, i){
+    var el = document.createElement('div');
+    el.className = 'tip-item'+(todayEntry.completed[i]?' done':'');
+    el.innerHTML = '<div class="tip-check">✓</div><div class="tip-text">'+tip.text+'</div>';
+    el.addEventListener('click', function(){
+      todayEntry.completed[i] = !todayEntry.completed[i];
+      setDailyLog(dailyLog);
+      if(todayEntry.completed[i]){ registerActivity(); bumpConditionWeights(todayEntry); }
+      renderTips();
+    });
+    list.appendChild(el);
+  });
+}
+
+var JOURNAL_SHOW_LIMIT = 5;
+var journalExpanded = false;
+function renderJournalTimeline(){
+  var wrap = document.getElementById('journal-timeline');
+  var toggle = document.getElementById('journal-toggle');
+  var entries = dailyLog.filter(function(e){ return e.journalEntry && e.journalEntry.trim().length>0; }).slice().reverse();
+  var showCount = journalExpanded ? entries.length : Math.min(JOURNAL_SHOW_LIMIT, entries.length);
+  wrap.innerHTML = '';
+  for(var i=0;i<showCount;i++){
+    var e = entries[i];
+    var d = parseDateLocal(e.date);
+    var div = document.createElement('div');
+    div.className = 'journal-entry';
+    div.innerHTML = '<div class="je-date">'+formatThaiDate(d)+'</div><div class="je-text">'+escapeHTML(e.journalEntry)+'</div>';
+    wrap.appendChild(div);
+  }
+  if(entries.length>JOURNAL_SHOW_LIMIT){
+    toggle.classList.remove('hidden');
+    toggle.textContent = journalExpanded ? 'ย่อ' : 'ดูเพิ่มเติม ('+(entries.length-JOURNAL_SHOW_LIMIT)+')';
+  } else {
+    toggle.classList.add('hidden');
+  }
+}
+
+function renderStreak(){
+  var info = computeDisplayStreak();
+  var section = document.getElementById('streak-section');
+  if(info.away){
+    section.innerHTML = '<div class="streak-away-msg">'+
+      '<svg width="22" height="22" viewBox="0 0 100 100" fill="none"><path d="M50 78 V45 M50 45 C38 45 30 35 30 22 C45 22 52 32 52 42 M50 50 C62 50 70 40 70 30 C57 30 50 38 50 46" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><br>'+
+      'ห่างหายไปสักพัก ไม่เป็นไรเลย เริ่มวันนี้ใหม่ได้ครับ<br>'+
+      '<span style="color:var(--text-4);font-size:11px;">สะสมมาแล้วทั้งหมด '+info.total+' วัน</span></div>';
+  } else {
+    section.innerHTML =
+      '<div class="streak-box"><div class="num">'+info.display+'</div><div class="lbl">วันต่อเนื่อง</div></div>'+
+      '<div class="streak-box"><div class="num">'+info.total+'</div><div class="lbl">วันสะสมทั้งหมด</div></div>';
+  }
+}
+function renderHeaderStreak(){
+  var info = computeDisplayStreak();
+  document.getElementById('header-streak').textContent = info.display;
+}
+
+function renderAll(){
+  renderHero();
+  renderPrinciples();
+  renderAffirmation();
+  renderTips();
+  renderJournalTimeline();
+  renderStreak();
+  renderHeaderStreak();
+  document.getElementById('journal-input').value = todayEntry.journalEntry || '';
+}
+
+/* ================= Journal submit ================= */
+document.getElementById('journal-send').addEventListener('click', submitJournal);
+document.getElementById('journal-input').addEventListener('keydown', function(ev){ if(ev.key==='Enter') submitJournal(); });
+function submitJournal(){
+  var input = document.getElementById('journal-input');
+  var val = input.value.trim();
+  if(!val) return;
+  todayEntry.journalEntry = val;
+  setDailyLog(dailyLog);
+  registerActivity();
+  renderJournalTimeline();
+}
+document.getElementById('journal-toggle').addEventListener('click', function(){
+  journalExpanded = !journalExpanded;
+  renderJournalTimeline();
+});
+
+/* ================= Micro-intuition modal ================= */
+var breatheTimers = [];
+function clearBreatheTimers(){ breatheTimers.forEach(function(t){clearTimeout(t);}); breatheTimers=[]; }
+document.getElementById('intuition-fab').addEventListener('click', openIntuitionModal);
+function openIntuitionModal(){
+  var modal = document.getElementById('intuition-modal');
+  modal.classList.remove('hidden');
+  document.getElementById('intuition-question-wrap').classList.add('hidden');
+  document.getElementById('breathe-wrap').classList.remove('hidden');
+  document.getElementById('intuition-save').classList.add('hidden');
+  document.getElementById('intuition-step-sub').textContent = 'หายใจลึกๆ สัก 3 ครั้ง แล้วฟังความรู้สึกแรกของคุณ';
+  document.getElementById('intuition-textarea').value = '';
+  runBreathingSequence();
+}
+function runBreathingSequence(){
+  clearBreatheTimers();
+  var circle = document.getElementById('breathe-circle');
+  var label = document.getElementById('breathe-label');
+  var t = 0;
+  for(var cycle=0; cycle<3; cycle++){
+    (function(){
+      var inTime = t;
+      breatheTimers.push(setTimeout(function(){ circle.classList.add('in'); label.textContent = 'หายใจเข้า...'; }, inTime));
+      var outTime = t+4000;
+      breatheTimers.push(setTimeout(function(){ circle.classList.remove('in'); label.textContent = 'หายใจออก...'; }, outTime));
+    })();
+    t += 8000;
+  }
+  breatheTimers.push(setTimeout(showIntuitionQuestion, t));
+}
+function showIntuitionQuestion(){
+  document.getElementById('breathe-wrap').classList.add('hidden');
+  document.getElementById('intuition-question-wrap').classList.remove('hidden');
+  document.getElementById('intuition-save').classList.remove('hidden');
+  document.getElementById('intuition-step-sub').textContent = 'ทำได้ดีมาก';
+}
+document.getElementById('intuition-skip').addEventListener('click', function(){
+  clearBreatheTimers();
+  document.getElementById('intuition-modal').classList.add('hidden');
+});
+document.getElementById('intuition-save').addEventListener('click', function(){
+  var text = document.getElementById('intuition-textarea').value.trim();
+  if(text){
+    todayEntry.microIntuition = text;
+    setDailyLog(dailyLog);
+    var w = getWeights();
+    w.intuition = Math.min(3, (w.intuition||1) + 0.05);
+    setWeights(w);
+  }
+  registerActivity();
+  document.getElementById('intuition-modal').classList.add('hidden');
+});
+document.getElementById('breathe-wrap').addEventListener('click', function(){
+  clearBreatheTimers();
+  showIntuitionQuestion();
+});
+
+/* ================= Weekly reflection + weekly challenge draw ================= */
+function checkWeeklyReflection(){
+  var last = localStorage.getItem(K.lastWeekly);
+  if(!last){ localStorage.setItem(K.lastWeekly, todayStr); return; }
+  var gap = daysBetween(todayDate, parseDateLocal(last));
+  if(gap>=7){ openWeeklyReflection(); drawWeeklyChallenge(); }
+}
+var weeklySelectedPrinciple = null;
+function openWeeklyReflection(){
+  var entries = dailyLog.filter(function(e){ return daysBetween(todayDate, parseDateLocal(e.date)) < 7; });
+  var principleCounts = {opportunities:0, intuition:0, positivity:0, resilience:0};
+  var journalCount = 0;
+  entries.forEach(function(e){
+    if(e.journalEntry && e.journalEntry.trim().length>0) journalCount++;
+    if(e.tips && e.completed){ e.tips.forEach(function(tip,i){ if(e.completed[i]) principleCounts[tip.principle]++; }); }
+  });
+  var mostId = PRINCIPLE_IDS.reduce(function(a,b){ return principleCounts[b]>principleCounts[a] ? b : a; });
+  var mostP = principleById(mostId);
+
+  document.getElementById('weekly-stats').innerHTML =
+    '<div class="modal-stat-row"><span>วันที่เขียนบันทึก</span><span class="v">'+journalCount+' วัน</span></div>'+
+    '<div class="modal-stat-row"><span>กิจกรรมที่ทำบ่อยที่สุด</span><span class="v" style="display:inline-flex;align-items:center;gap:5px;">'+iconSVG(mostP.icon,14)+mostP.name+'</span></div>'+
+    '<div class="modal-stat-row"><span>รวมกิจกรรมที่ทำสัปดาห์นี้</span><span class="v">'+PRINCIPLE_IDS.reduce(function(a,id){return a+principleCounts[id];},0)+' ครั้ง</span></div>';
+
+  var chipRow = document.getElementById('weekly-principle-chips');
+  chipRow.innerHTML = '';
+  weeklySelectedPrinciple = null;
+  PRINCIPLES.forEach(function(p){
+    var chip = document.createElement('button');
+    chip.className = 'chip-btn';
+    chip.type = 'button';
+    chip.style.display = 'inline-flex';
+    chip.style.alignItems = 'center';
+    chip.style.gap = '6px';
+    chip.innerHTML = iconSVG(p.icon,14)+p.name;
+    chip.addEventListener('click', function(){
+      weeklySelectedPrinciple = p.id;
+      Array.prototype.forEach.call(chipRow.children, function(c){c.classList.remove('selected');});
+      chip.classList.add('selected');
+    });
+    chipRow.appendChild(chip);
+  });
+  document.getElementById('weekly-resilience-text').value = '';
+  document.getElementById('weekly-modal').classList.remove('hidden');
+}
+document.getElementById('weekly-save').addEventListener('click', function(){
+  var note = document.getElementById('weekly-resilience-text').value.trim();
+  var reflections = getJSON(K.weeklyReflections, []);
+  reflections.push({date:todayStr, helpfulPrinciple:weeklySelectedPrinciple, resilienceNote:note});
+  setJSON(K.weeklyReflections, reflections);
+  if(weeklySelectedPrinciple){
+    var w = getWeights();
+    w[weeklySelectedPrinciple] = Math.min(3, (w[weeklySelectedPrinciple]||1) * 1.15);
+    setWeights(w);
+  }
+  localStorage.setItem(K.lastWeekly, todayStr);
+  document.getElementById('weekly-modal').classList.add('hidden');
+});
+
+/* ================= Monthly summary ================= */
+function monthKey(dateObj){ return dateObj.getFullYear()+'-'+pad2(dateObj.getMonth()+1); }
+function checkMonthlyStory(){
+  var last = localStorage.getItem(K.lastMonthly);
+  var curKey = monthKey(todayDate);
+  if(!last){ localStorage.setItem(K.lastMonthly, curKey); return; }
+  if(last!==curKey) openMonthlyStory(last, curKey);
+}
+function openMonthlyStory(prevKey, curKey){
+  var prevEntries = dailyLog.filter(function(e){ return e.date.slice(0,7)===prevKey; });
+  var counts = {opportunities:0, intuition:0, positivity:0, resilience:0};
+  var temps = [];
+  prevEntries.forEach(function(e){
+    if(e.tips && e.completed){ e.tips.forEach(function(tip,i){ if(e.completed[i]) counts[tip.principle]++; }); }
+    if(e.weather && typeof e.weather.temp==='number') temps.push(e.weather.temp);
+  });
+  var topId = PRINCIPLE_IDS.reduce(function(a,b){ return counts[b]>counts[a] ? b : a; });
+  var topP = principleById(topId);
+  var journalDays = prevEntries.filter(function(e){return e.journalEntry && e.journalEntry.trim().length>0;}).length;
+
+  var parts = prevKey.split('-');
+  var label = MONTH_TH[Number(parts[1])-1]+' '+(Number(parts[0])+543);
+  document.getElementById('monthly-sub').textContent = label;
+  var statsHtml =
+    '<div class="modal-stat-row"><span>โฟกัสที่เด่นที่สุด</span><span class="v" style="display:inline-flex;align-items:center;gap:5px;">'+iconSVG(topP.icon,14)+topP.name+'</span></div>'+
+    '<div class="modal-stat-row"><span>วันที่เขียนบันทึก</span><span class="v">'+journalDays+' วัน</span></div>';
+  if(temps.length>=5){
+    var avgTemp = temps.reduce(function(a,b){return a+b;},0)/temps.length;
+    statsHtml += '<div class="modal-stat-row"><span>อุณหภูมิเฉลี่ยเดือนนี้</span><span class="v">~'+avgTemp.toFixed(0)+'°C</span></div>';
+  }
+  document.getElementById('monthly-stats').innerHTML = statsHtml;
+
+  var stories = getJSON(K.monthlyStories, []);
+  stories.push({month:prevKey, topPrinciple:topId, journalDays:journalDays});
+  setJSON(K.monthlyStories, stories);
+  localStorage.setItem(K.lastMonthly, curKey);
+  document.getElementById('monthly-modal').classList.remove('hidden');
+}
+document.getElementById('monthly-close').addEventListener('click', function(){
+  document.getElementById('monthly-modal').classList.add('hidden');
+});
+
+/* ================= GROWTH: Opportunity Spotting ================= */
+function getSpottingEntry(){
+  var log = getJSON(K.spottingLog, []);
+  for(var i=0;i<log.length;i++){ if(log[i].date===todayStr) return log[i]; }
+  return null;
+}
+function renderSpotting(){
+  var seed = hashString('spot-'+todayStr);
+  var q = SPOTTING_QUESTIONS[seed % SPOTTING_QUESTIONS.length];
+  document.getElementById('spotting-prompt').textContent = q;
+  var entry = getSpottingEntry();
+  document.getElementById('spotting-input').value = entry ? entry.answer : '';
+  var log = getJSON(K.spottingLog, []);
+  var uniqueDays = {};
+  log.forEach(function(e){ if(e.answer && e.answer.trim().length>0) uniqueDays[e.date]=true; });
+  document.getElementById('spotting-count').textContent = Object.keys(uniqueDays).length;
+}
+document.getElementById('spotting-send').addEventListener('click', submitSpotting);
+document.getElementById('spotting-input').addEventListener('keydown', function(ev){ if(ev.key==='Enter') submitSpotting(); });
+function submitSpotting(){
+  var input = document.getElementById('spotting-input');
+  var val = input.value.trim();
+  if(!val) return;
+  var log = getJSON(K.spottingLog, []);
+  var existing = null;
+  for(var i=0;i<log.length;i++){ if(log[i].date===todayStr) existing = log[i]; }
+  var wasEmpty = !existing || !existing.answer || !existing.answer.trim().length;
+  if(existing){ existing.answer = val; } else { log.push({date:todayStr, answer:val}); }
+  setJSON(K.spottingLog, log);
+  if(wasEmpty){
+    var vault = getJSON(K.ideaVault, []);
+    vault.push({id:uid(), text:val, dateCreated:todayStr, source:'opportunity-spotting', archived:false, dateReviewed:null});
+    setJSON(K.ideaVault, vault);
+  }
+  registerActivity();
+  renderSpotting();
+  renderIdeaVault();
+}
+
+/* ================= GROWTH: Skill Sprint ================= */
+function getGrowthSkill(){ return getJSON(K.growthSkill, null); }
+function setGrowthSkill(s){ setJSON(K.growthSkill, s); }
+function renderSkillSprint(){
+  var body = document.getElementById('skill-sprint-body');
+  var skill = getGrowthSkill();
+  if(!skill){
+    body.innerHTML =
+      '<div class="journal-input-row">'+
+      '<input class="journal-input" id="skill-name-input" placeholder="เช่น การเจรจา, อ่านงบการเงิน, การตลาด">'+
+      '<button class="journal-send" id="skill-name-submit">→</button>'+
+      '</div>';
+    var history = getJSON(K.skillHistory, []);
+    if(history.length){
+      var histHtml = '<div class="skill-history">';
+      history.slice().reverse().forEach(function(h){
+        histHtml += '<div class="skill-history-item"><span>'+escapeHTML(h.name)+'</span><span>'+(h.practiceDays?h.practiceDays.length:0)+' วัน</span></div>';
+      });
+      histHtml += '</div>';
+      body.innerHTML += histHtml;
+    }
+    document.getElementById('skill-name-submit').addEventListener('click', function(){
+      var name = document.getElementById('skill-name-input').value.trim();
+      if(!name) return;
+      setGrowthSkill({name:name, startDate:todayStr, practiceDays:[]});
+      renderSkillSprint();
+    });
+    return;
+  }
+  var seed = hashString('skill-'+todayStr);
+  var prompt = SKILL_PROMPTS[seed % SKILL_PROMPTS.length];
+  var doneToday = skill.practiceDays.indexOf(todayStr) >= 0;
+  var badges = [7,30,100].filter(function(n){ return skill.practiceDays.length>=n; });
+  var badgeHtml = badges.length ? '<div class="badge-row">'+badges.map(function(n){
+    return '<span class="badge-chip">'+iconSVG('award',12)+'ครบ '+n+' วัน</span>';
+  }).join('')+'</div>' : '';
+  body.innerHTML =
+    '<div class="growth-card-head" style="margin-bottom:8px;"><div class="gt" style="font-size:13px;">กำลังฝึก: '+escapeHTML(skill.name)+'</div></div>'+
+    '<div class="growth-prompt">'+prompt+'</div>'+
+    '<button class="btn-primary" id="skill-done-btn" style="max-width:none;"'+(doneToday?' disabled':'')+'>'+(doneToday?'ทำแล้ววันนี้':'ทำแล้ววันนี้')+'</button>'+
+    '<div class="growth-counter">ฝึกสะสม <b>'+skill.practiceDays.length+'</b> วัน</div>'+
+    badgeHtml+
+    '<button class="onboard-link" id="skill-change-btn">เปลี่ยนทักษะ</button>';
+  document.getElementById('skill-done-btn').addEventListener('click', function(){
+    if(skill.practiceDays.indexOf(todayStr)<0){
+      skill.practiceDays.push(todayStr);
+      setGrowthSkill(skill);
+      registerActivity();
+      renderSkillSprint();
+    }
+  });
+  document.getElementById('skill-change-btn').addEventListener('click', function(){
+    if(!confirm('เปลี่ยนทักษะใหม่? ทักษะเดิมจะถูกเก็บไว้ในประวัติ')) return;
+    var history = getJSON(K.skillHistory, []);
+    history.push({name:skill.name, startDate:skill.startDate, endDate:todayStr, practiceDays:skill.practiceDays});
+    setJSON(K.skillHistory, history);
+    setGrowthSkill(null);
+    renderSkillSprint();
+  });
+}
+
+/* ================= GROWTH: Idea Vault ================= */
+var ideaArchiveExpanded = false;
+function renderIdeaVault(){
+  var all = getJSON(K.ideaVault, []);
+  var query = (document.getElementById('idea-search').value||'').trim().toLowerCase();
+  var active = all.filter(function(i){ return !i.archived; });
+  var archived = all.filter(function(i){ return i.archived; });
+  if(query){
+    active = active.filter(function(i){ return i.text.toLowerCase().indexOf(query)>=0; });
+    archived = archived.filter(function(i){ return i.text.toLowerCase().indexOf(query)>=0; });
+  }
+  active.sort(function(a,b){ return b.dateCreated<a.dateCreated?-1:1; });
+  archived.sort(function(a,b){ return b.dateCreated<a.dateCreated?-1:1; });
+
+  var list = document.getElementById('idea-list');
+  list.innerHTML = active.length ? '' : '<div class="idea-empty">ยังไม่มีไอเดียในคลัง ลองเพิ่มดูได้เลย</div>';
+  active.forEach(function(idea){ list.appendChild(renderIdeaItem(idea)); });
+
+  var archiveToggle = document.getElementById('idea-archive-toggle');
+  var archiveList = document.getElementById('idea-archive-list');
+  if(archived.length){
+    archiveToggle.classList.remove('hidden');
+    archiveToggle.textContent = ideaArchiveExpanded ? 'ซ่อนคลังเก่า' : 'ดูคลังเก่า ('+archived.length+')';
+    archiveList.classList.toggle('hidden', !ideaArchiveExpanded);
+    archiveList.innerHTML = '';
+    archived.forEach(function(idea){ archiveList.appendChild(renderIdeaItem(idea)); });
+  } else {
+    archiveToggle.classList.add('hidden');
+    archiveList.classList.add('hidden');
+  }
+}
+function renderIdeaItem(idea){
+  var el = document.createElement('div');
+  el.className = 'idea-item';
+  var sourceIcon = idea.source==='opportunity-spotting' ? 'target-arrow' : 'bulb';
+  el.innerHTML =
+    '<div class="ii">'+iconSVG(sourceIcon,16)+'</div>'+
+    '<div class="it">'+escapeHTML(idea.text)+'<div class="id-date">'+formatThaiDate(parseDateLocal(idea.dateCreated))+'</div></div>'+
+    '<button class="del-btn" data-id="'+idea.id+'">'+iconSVG('trash',16)+'</button>';
+  el.querySelector('.del-btn').addEventListener('click', function(){
+    if(!confirm('ลบไอเดียนี้?')) return;
+    var vault = getJSON(K.ideaVault, []).filter(function(i){ return i.id!==idea.id; });
+    setJSON(K.ideaVault, vault);
+    renderIdeaVault();
+  });
+  return el;
+}
+document.getElementById('idea-send').addEventListener('click', submitIdea);
+document.getElementById('idea-input').addEventListener('keydown', function(ev){ if(ev.key==='Enter') submitIdea(); });
+function submitIdea(){
+  var input = document.getElementById('idea-input');
+  var val = input.value.trim();
+  if(!val) return;
+  var vault = getJSON(K.ideaVault, []);
+  vault.push({id:uid(), text:val, dateCreated:todayStr, source:'manual', archived:false, dateReviewed:null});
+  setJSON(K.ideaVault, vault);
+  input.value = '';
+  renderIdeaVault();
+}
+document.getElementById('idea-search').addEventListener('input', renderIdeaVault);
+document.getElementById('idea-archive-toggle').addEventListener('click', function(){
+  ideaArchiveExpanded = !ideaArchiveExpanded;
+  renderIdeaVault();
+});
+
+var resurfaceIdeaId = null;
+function checkIdeaResurface(){
+  var last = localStorage.getItem(K.lastIdeaResurface);
+  if(last && daysBetween(todayDate, parseDateLocal(last)) < 7) return;
+  var vault = getJSON(K.ideaVault, []);
+  var candidate = null;
+  vault.forEach(function(idea){
+    if(idea.archived) return;
+    var age = daysBetween(todayDate, parseDateLocal(idea.dateCreated));
+    if(age < 90) return;
+    if(idea.dateReviewed && daysBetween(todayDate, parseDateLocal(idea.dateReviewed)) < 90) return;
+    if(!candidate || idea.dateCreated < candidate.dateCreated) candidate = idea;
+  });
+  localStorage.setItem(K.lastIdeaResurface, todayStr);
+  if(!candidate) return;
+  resurfaceIdeaId = candidate.id;
+  document.getElementById('idea-resurface-date').textContent = 'บันทึกไว้เมื่อ '+formatThaiDate(parseDateLocal(candidate.dateCreated));
+  document.getElementById('idea-resurface-text').textContent = candidate.text;
+  document.getElementById('idea-resurface-modal').classList.remove('hidden');
+}
+function updateResurfacedIdea(mutate){
+  var vault = getJSON(K.ideaVault, []);
+  var idea = vault.filter(function(i){ return i.id===resurfaceIdeaId; })[0];
+  if(idea) mutate(idea);
+  setJSON(K.ideaVault, vault);
+  document.getElementById('idea-resurface-modal').classList.add('hidden');
+  renderIdeaVault();
+}
+document.getElementById('idea-resurface-keep').addEventListener('click', function(){
+  updateResurfacedIdea(function(idea){ idea.dateReviewed = todayStr; });
+});
+document.getElementById('idea-resurface-archive').addEventListener('click', function(){
+  updateResurfacedIdea(function(idea){ idea.archived = true; idea.dateReviewed = todayStr; });
+});
+document.getElementById('idea-resurface-delete').addEventListener('click', function(){
+  var vault = getJSON(K.ideaVault, []).filter(function(i){ return i.id!==resurfaceIdeaId; });
+  setJSON(K.ideaVault, vault);
+  document.getElementById('idea-resurface-modal').classList.add('hidden');
+  renderIdeaVault();
+});
+
+/* ================= GROWTH: Weekly Challenge ================= */
+function drawWeeklyChallenge(){
+  var idx = Math.floor(Math.random() * WEEKLY_CHALLENGES.length);
+  var log = getJSON(K.challengeLog, []);
+  log.push({weekStart:todayStr, challengeIndex:idx, challengeText:WEEKLY_CHALLENGES[idx], completed:false, rerolled:false});
+  setJSON(K.challengeLog, log);
+}
+function getCurrentChallenge(){
+  var log = getJSON(K.challengeLog, []);
+  return log.length ? log[log.length-1] : null;
+}
+function renderChallenge(){
+  var body = document.getElementById('challenge-body');
+  var current = getCurrentChallenge();
+  if(!current){
+    body.innerHTML = '<div class="idea-empty">ยังไม่มีความท้าทายสัปดาห์นี้ กลับมาดูใหม่เมื่อครบสัปดาห์นะ</div>';
+    return;
+  }
+  body.innerHTML =
+    '<div class="challenge-caption">สุ่มจากคลังกิจกรรม ไม่มีความหมายพิเศษ</div>'+
+    '<div class="growth-prompt">'+current.challengeText+'</div>'+
+    '<div class="challenge-actions">'+
+    '<div class="challenge-check'+(current.completed?' done':'')+'" id="challenge-check"><div class="cb">✓</div><span>ทำแล้ว</span></div>'+
+    (current.rerolled ? '' : '<button class="btn-secondary" id="challenge-reroll">สุ่มใหม่</button>')+
+    '</div>';
+  document.getElementById('challenge-check').addEventListener('click', function(){
+    var log = getJSON(K.challengeLog, []);
+    var entry = log[log.length-1];
+    entry.completed = !entry.completed;
+    setJSON(K.challengeLog, log);
+    if(entry.completed) registerActivity();
+    renderChallenge();
+  });
+  var rerollBtn = document.getElementById('challenge-reroll');
+  if(rerollBtn){
+    rerollBtn.addEventListener('click', function(){
+      var log = getJSON(K.challengeLog, []);
+      var entry = log[log.length-1];
+      var idx = Math.floor(Math.random() * WEEKLY_CHALLENGES.length);
+      entry.challengeIndex = idx;
+      entry.challengeText = WEEKLY_CHALLENGES[idx];
+      entry.rerolled = true;
+      setJSON(K.challengeLog, log);
+      renderChallenge();
+    });
+  }
+}
+
+function renderGrowthPage(){
+  renderSpotting();
+  renderSkillSprint();
+  renderIdeaVault();
+  renderChallenge();
+  checkIdeaResurface();
+}
+
+/* ================= Bottom nav ================= */
+function showTab(tab){
+  document.getElementById('app').classList.toggle('hidden', tab!=='today');
+  document.getElementById('growth-page').classList.toggle('hidden', tab!=='growth');
+  document.getElementById('nav-today').classList.toggle('active', tab==='today');
+  document.getElementById('nav-growth').classList.toggle('active', tab==='growth');
+  if(tab==='growth') renderGrowthPage();
+  window.scrollTo(0,0);
+}
+document.getElementById('nav-today').addEventListener('click', function(){ showTab('today'); });
+document.getElementById('nav-growth').addEventListener('click', function(){ showTab('growth'); });
+
+/* ================= Settings ================= */
+function renderScheduleGrid(){
+  var grid = document.getElementById('schedule-grid');
+  var schedule = getSchedule();
+  grid.innerHTML = '';
+  SCHEDULE_DISPLAY_ORDER.forEach(function(key){
+    var chip = document.createElement('button');
+    chip.className = 'schedule-chip'+(schedule[key]==='busy' ? ' busy' : '');
+    chip.type = 'button';
+    chip.textContent = SCHEDULE_LABELS[key];
+    chip.title = schedule[key]==='busy' ? 'วันงานหนัก (แตะเพื่อเปลี่ยน)' : 'วันว่าง (แตะเพื่อเปลี่ยน)';
+    chip.addEventListener('click', function(){
+      var s = getSchedule();
+      s[key] = s[key]==='busy' ? 'free' : 'busy';
+      setSchedule(s);
+      renderScheduleGrid();
+    });
+    grid.appendChild(chip);
+  });
+}
+document.getElementById('settings-btn').addEventListener('click', function(){
+  var loc = getLocation() || DEFAULT_LOCATION;
+  document.getElementById('settings-location-val').textContent = loc.label;
+  document.getElementById('settings-location-status').textContent = '';
+  renderScheduleGrid();
+  document.getElementById('settings-modal').classList.remove('hidden');
+});
+document.getElementById('settings-close').addEventListener('click', function(){
+  document.getElementById('settings-modal').classList.add('hidden');
+});
+function applyNewLocation(loc){
+  setLocation(loc);
+  var idx = dailyLog.findIndex(function(e){ return e.date===todayStr; });
+  if(idx>=0) dailyLog.splice(idx,1);
+  setDailyLog(dailyLog);
+  location.reload();
+}
+document.getElementById('settings-geo-btn').addEventListener('click', function(){
+  var status = document.getElementById('settings-location-status');
+  status.textContent = 'กำลังค้นหาตำแหน่ง...';
+  requestGeolocation().then(function(loc){ applyNewLocation(loc); }).catch(function(){
+    status.textContent = 'ขอตำแหน่งไม่สำเร็จ ลองพิมพ์ชื่อเมืองแทนได้';
+  });
+});
+document.getElementById('settings-city-submit').addEventListener('click', function(){
+  var name = document.getElementById('settings-city-input').value.trim();
+  if(!name) return;
+  var status = document.getElementById('settings-location-status');
+  status.textContent = 'กำลังค้นหา...';
+  geocodeCity(name).then(function(loc){ applyNewLocation(loc); }).catch(function(){
+    status.textContent = 'ไม่พบเมืองนี้ ลองสะกดใหม่อีกครั้ง';
+  });
+});
+
+document.getElementById('export-btn').addEventListener('click', function(){
+  var data = {};
+  Object.keys(K).forEach(function(name){
+    var key = K[name];
+    var raw = localStorage.getItem(key);
+    if(raw!==null) data[key] = raw;
+  });
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'rak-backup-'+todayStr+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+document.getElementById('import-btn').addEventListener('click', function(){
+  document.getElementById('import-file').click();
+});
+document.getElementById('import-file').addEventListener('change', function(ev){
+  var file = ev.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var data = JSON.parse(reader.result);
+      if(!data[K.dailyLog] && !data[K.location]) throw new Error('invalid backup file');
+      Object.keys(data).forEach(function(key){ localStorage.setItem(key, data[key]); });
+      alert('นำเข้าข้อมูลสำเร็จ กำลังโหลดใหม่');
+      location.reload();
+    }catch(e){
+      alert('ไฟล์ไม่ถูกต้อง กรุณาตรวจสอบไฟล์สำรองข้อมูล');
+    }
+  };
+  reader.readAsText(file);
+});
+
+/* ================= Backdrop dismiss ================= */
+['settings-modal','monthly-modal','idea-resurface-modal'].forEach(function(id){
+  document.getElementById(id).addEventListener('click', function(ev){
+    if(ev.target===ev.currentTarget) ev.currentTarget.classList.add('hidden');
+  });
+});
+document.getElementById('intuition-modal').addEventListener('click', function(ev){
+  if(ev.target===ev.currentTarget){ clearBreatheTimers(); ev.currentTarget.classList.add('hidden'); }
+});
+
+/* ================= Onboarding ================= */
+var onboardStatus = document.getElementById('onboard-status');
+document.getElementById('onboard-geo-btn').addEventListener('click', function(){
+  onboardStatus.textContent = 'กำลังค้นหาตำแหน่ง...';
+  requestGeolocation().then(function(loc){
+    setLocation(loc);
+    startApp(loc);
+  }).catch(function(){
+    onboardStatus.textContent = 'ขอตำแหน่งไม่สำเร็จ ลองพิมพ์ชื่อเมือง หรือข้ามไปก่อนได้';
+  });
+});
+document.getElementById('onboard-city-toggle').addEventListener('click', function(){
+  document.getElementById('onboard-city-row').classList.toggle('show');
+});
+document.getElementById('onboard-city-submit').addEventListener('click', function(){
+  var name = document.getElementById('onboard-city-input').value.trim();
+  if(!name) return;
+  onboardStatus.textContent = 'กำลังค้นหา...';
+  geocodeCity(name).then(function(loc){
+    setLocation(loc);
+    startApp(loc);
+  }).catch(function(){
+    onboardStatus.textContent = 'ไม่พบเมืองนี้ ลองสะกดใหม่ หรือข้ามไปก่อนได้';
+  });
+});
+document.getElementById('onboard-skip').addEventListener('click', function(){
+  setLocation(DEFAULT_LOCATION);
+  startApp(DEFAULT_LOCATION);
+});
+
+/* ================= Manifest / icon ================= */
+function setupPWAMeta(){
+  var iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'+
+    '<rect width="100" height="100" rx="22" fill="#F5F7EE"/>'+
+    '<path d="M50 78 V45 M50 45 C38 45 30 35 30 22 C45 22 52 32 52 42 M50 50 C62 50 70 40 70 30 C57 30 50 38 50 46" stroke="#5B9C4A" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<circle cx="50" cy="80" r="4" fill="#E8A83A"/></svg>';
+  var iconUri = 'data:image/svg+xml,'+encodeURIComponent(iconSvg);
+  document.getElementById('favicon-link').href = iconUri;
+  document.getElementById('apple-icon-link').href = iconUri;
+  var manifest = {
+    name:'RAK', short_name:'RAK', start_url:'.', display:'standalone',
+    background_color:'#F5F7EE', theme_color:'#F5F7EE',
+    icons:[{src:iconUri, sizes:'512x512', type:'image/svg+xml', purpose:'any'}]
+  };
+  var blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  document.getElementById('manifest-link').href = URL.createObjectURL(blob);
+}
+
+/* ================= Init ================= */
+function startApp(location){
+  document.getElementById('onboarding-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('intuition-fab').classList.remove('hidden');
+  document.getElementById('bottom-nav').classList.remove('hidden');
+  dailyLog = getDailyLog();
+  getOrCreateTodayEntry(location).then(function(entry){
+    todayEntry = entry;
+    renderAll();
+    checkWeeklyReflection();
+    checkMonthlyStory();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  setupPWAMeta();
+  var loc = getLocation();
+  if(loc){ startApp(loc); }
+});
+
+})();
+</script>
+</body>
+</html>
