@@ -829,6 +829,10 @@ function requestGeolocation(){
 }
 var DEFAULT_LOCATION = {lat:13.7563, lng:100.5018, label:'กรุงเทพฯ (ค่าเริ่มต้น)'};
 
+function computeHeroNumber(weather){
+  return Math.round(weather.temp*100 + weather.humidity*10 + weather.windSpeed);
+}
+
 function weatherColorInfo(weather){
   if(!weather) return {name:'เขียวสด', hex:'#5B9C4A'};
   var wc = getWeatherCodeInfo(weather.weatherCode);
@@ -1312,7 +1316,7 @@ function renderHero(){
   var numberEl = document.getElementById('hero-number');
   var labelEl = document.getElementById('hero-number-label');
   if(w){
-    numberEl.textContent = Math.round(w.temp);
+    numberEl.textContent = computeHeroNumber(w);
     labelEl.textContent = 'เลขวันนี้';
   } else {
     numberEl.textContent = '–';
