@@ -456,9 +456,6 @@
   <div class="section-title">เส้นทางของคุณ</div>
   <div class="streak-section" id="streak-section"></div>
 
-  <div class="section-title">ลงมือทำต่อเนื่อง</div>
-  <div class="streak-section" id="action-streak-section"></div>
-
   <p class="footer-disclaimer">คำแนะนำอิงสภาพอากาศจริงและข้อมูลของคุณ ไม่ใช่คำทำนาย</p>
 </div>
 
@@ -1147,8 +1144,7 @@ var K = {
   challengeLog:'rak_weeklyChallengeLog',
   lastIdeaResurface:'rak_lastIdeaResurface',
   identity:'rak_identity',
-  identityVotes:'rak_identityVotes',
-  actionStreak:'rak_actionStreak'
+  identityVotes:'rak_identityVotes'
 };
 function getJSON(key, fallback){
   try{ var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
@@ -1174,8 +1170,6 @@ function getIdentity(){ return getJSON(K.identity, ''); }
 function setIdentity(v){ setJSON(K.identity, v); }
 function getIdentityVotes(){ return getJSON(K.identityVotes, []); }
 function setIdentityVotes(v){ setJSON(K.identityVotes, v); }
-function getActionStreak(){ return getJSON(K.actionStreak, {current:0, longest:0, lastActionDate:null}); }
-function setActionStreak(v){ setJSON(K.actionStreak, v); }
 
 /* ================= Time of day ================= */
 function getTimeOfDay(hour){
@@ -1342,8 +1336,7 @@ function buildTodayEntry(location){
       affirmation: affirmation,
       tips: tips,
       completed: tips.map(function(){return false;}),
-      journalEntry: '',
-      microIntuition: ''
+      journalEntries: []
     };
   }
 
@@ -1386,43 +1379,14 @@ function registerActivity(){
   renderHeaderStreak();
 }
 
-/* ================= Action streak + Identity votes ================= */
-function computeDisplayActionStreak(){
-  var s = getActionStreak();
-  if(!s.lastActionDate) return {display:0, longest:s.longest||0};
-  var gap = daysBetween(todayDate, parseDateLocal(s.lastActionDate));
-  var display = gap<=1 ? s.current : 0;
-  return {display:display, longest:Math.max(s.longest||0, display)};
-}
-function registerActionStreakDay(){
-  var s = getActionStreak();
-  if(s.lastActionDate===todayStr) return;
-  if(s.lastActionDate){
-    var gap = daysBetween(todayDate, parseDateLocal(s.lastActionDate));
-    s.current = (gap===1) ? s.current+1 : 1;
-  } else {
-    s.current = 1;
-  }
-  s.longest = Math.max(s.longest||0, s.current);
-  s.lastActionDate = todayStr;
-  setActionStreak(s);
-  renderActionStreakSection();
-}
+/* ================= Identity votes ================= */
 function registerIdentityVote(sourceFeature, note){
   var votes = getIdentityVotes();
   votes.push({date:todayStr, sourceFeature:sourceFeature, note:(note||'').slice(0,200)});
   setIdentityVotes(votes);
-  registerActionStreakDay();
+  registerActivity();
   renderIdentityVotesSummary();
   renderCompoundView();
-}
-function renderActionStreakSection(){
-  var section = document.getElementById('action-streak-section');
-  if(!section) return;
-  var info = computeDisplayActionStreak();
-  section.innerHTML =
-    '<div class="streak-box"><div class="num">'+info.display+'</div><div class="lbl">วันต่อเนื่องที่ลงมือทำ</div></div>'+
-    '<div class="streak-box"><div class="num">'+info.longest+'</div><div class="lbl">สถิติต่อเนื่องสูงสุด</div></div>';
 }
 function renderIdentityBanner(){
   var el = document.getElementById('identity-banner');
@@ -1500,25 +1464,50 @@ function renderTips(){
   });
 }
 
+/* Journal records: each daily entry can hold multiple timestamped records now.
+   Old data had a single `journalEntry` string per day — read both shapes so
+   existing history keeps displaying after this format change. */
+function getEntryRecords(e){
+  if(e.journalEntries && e.journalEntries.length) return e.journalEntries;
+  if(e.journalEntry && e.journalEntry.trim().length>0) return [{time:'', text:e.journalEntry, type:'journal'}];
+  return [];
+}
+function nowTimeLabel(){
+  var d = new Date();
+  return pad2(d.getHours())+':'+pad2(d.getMinutes());
+}
+function addJournalRecord(entry, text, type){
+  if(!entry.journalEntries) entry.journalEntries = [];
+  entry.journalEntries.push({time:nowTimeLabel(), text:text, type:type});
+}
+var JOURNAL_RECORD_TYPE_LABELS = {intuition:'ฟังสัญชาตญาณ', weekly:'สรุปสัปดาห์'};
+
 var JOURNAL_SHOW_LIMIT = 5;
 var journalExpanded = false;
 function renderJournalTimeline(){
   var wrap = document.getElementById('journal-timeline');
   var toggle = document.getElementById('journal-toggle');
-  var entries = dailyLog.filter(function(e){ return e.journalEntry && e.journalEntry.trim().length>0; }).slice().reverse();
-  var showCount = journalExpanded ? entries.length : Math.min(JOURNAL_SHOW_LIMIT, entries.length);
+  var records = [];
+  dailyLog.forEach(function(e){
+    getEntryRecords(e).forEach(function(r){
+      records.push({date:e.date, time:r.time, text:r.text, type:r.type||'journal'});
+    });
+  });
+  records.reverse();
+  var showCount = journalExpanded ? records.length : Math.min(JOURNAL_SHOW_LIMIT, records.length);
   wrap.innerHTML = '';
   for(var i=0;i<showCount;i++){
-    var e = entries[i];
-    var d = parseDateLocal(e.date);
+    var r = records[i];
+    var d = parseDateLocal(r.date);
     var div = document.createElement('div');
     div.className = 'journal-entry';
-    div.innerHTML = '<div class="je-date">'+formatThaiDate(d)+'</div><div class="je-text">'+escapeHTML(e.journalEntry)+'</div>';
+    var meta = formatThaiDate(d) + (r.time ? ' · '+r.time : '') + (JOURNAL_RECORD_TYPE_LABELS[r.type] ? ' · '+JOURNAL_RECORD_TYPE_LABELS[r.type] : '');
+    div.innerHTML = '<div class="je-date">'+meta+'</div><div class="je-text">'+escapeHTML(r.text)+'</div>';
     wrap.appendChild(div);
   }
-  if(entries.length>JOURNAL_SHOW_LIMIT){
+  if(records.length>JOURNAL_SHOW_LIMIT){
     toggle.classList.remove('hidden');
-    toggle.textContent = journalExpanded ? 'ย่อ' : 'ดูเพิ่มเติม ('+(entries.length-JOURNAL_SHOW_LIMIT)+')';
+    toggle.textContent = journalExpanded ? 'ย่อ' : 'ดูเพิ่มเติม ('+(records.length-JOURNAL_SHOW_LIMIT)+')';
   } else {
     toggle.classList.add('hidden');
   }
@@ -1552,8 +1541,6 @@ function renderAll(){
   renderJournalTimeline();
   renderStreak();
   renderHeaderStreak();
-  renderActionStreakSection();
-  document.getElementById('journal-input').value = todayEntry.journalEntry || '';
 }
 
 /* ================= Journal submit ================= */
@@ -1563,8 +1550,9 @@ function submitJournal(){
   var input = document.getElementById('journal-input');
   var val = input.value.trim();
   if(!val) return;
-  todayEntry.journalEntry = val;
+  addJournalRecord(todayEntry, val, 'journal');
   setDailyLog(dailyLog);
+  input.value = '';
   registerActivity();
   renderJournalTimeline();
 }
@@ -1616,11 +1604,12 @@ document.getElementById('intuition-skip').addEventListener('click', function(){
 document.getElementById('intuition-save').addEventListener('click', function(){
   var text = document.getElementById('intuition-textarea').value.trim();
   if(text){
-    todayEntry.microIntuition = text;
+    addJournalRecord(todayEntry, text, 'intuition');
     setDailyLog(dailyLog);
     var w = getWeights();
     w.intuition = Math.min(3, (w.intuition||1) + 0.05);
     setWeights(w);
+    renderJournalTimeline();
   }
   registerActivity();
   document.getElementById('intuition-modal').classList.add('hidden');
@@ -1643,7 +1632,7 @@ function openWeeklyReflection(){
   var principleCounts = {opportunities:0, intuition:0, positivity:0, resilience:0};
   var journalCount = 0;
   entries.forEach(function(e){
-    if(e.journalEntry && e.journalEntry.trim().length>0) journalCount++;
+    if(getEntryRecords(e).length>0) journalCount++;
     if(e.tips && e.completed){ e.tips.forEach(function(tip,i){ if(e.completed[i]) principleCounts[tip.principle]++; }); }
   });
   var mostId = PRINCIPLE_IDS.reduce(function(a,b){ return principleCounts[b]>principleCounts[a] ? b : a; });
@@ -1685,6 +1674,12 @@ document.getElementById('weekly-save').addEventListener('click', function(){
     w[weeklySelectedPrinciple] = Math.min(3, (w[weeklySelectedPrinciple]||1) * 1.15);
     setWeights(w);
   }
+  if(note){
+    addJournalRecord(todayEntry, note, 'weekly');
+    setDailyLog(dailyLog);
+    renderJournalTimeline();
+  }
+  registerActivity();
   localStorage.setItem(K.lastWeekly, todayStr);
   document.getElementById('weekly-modal').classList.add('hidden');
 });
@@ -1707,7 +1702,7 @@ function openMonthlyStory(prevKey, curKey){
   });
   var topId = PRINCIPLE_IDS.reduce(function(a,b){ return counts[b]>counts[a] ? b : a; });
   var topP = principleById(topId);
-  var journalDays = prevEntries.filter(function(e){return e.journalEntry && e.journalEntry.trim().length>0;}).length;
+  var journalDays = prevEntries.filter(function(e){return getEntryRecords(e).length>0;}).length;
 
   var parts = prevKey.split('-');
   var label = MONTH_TH[Number(parts[1])-1]+' '+(Number(parts[0])+543);
@@ -1763,14 +1758,10 @@ function submitSpotting(){
   if(existing){ existing.answer = val; } else { log.push({date:todayStr, answer:val}); }
   setJSON(K.spottingLog, log);
   if(wasEmpty){
-    var vault = getJSON(K.ideaVault, []);
-    vault.push({id:uid(), text:val, dateCreated:todayStr, source:'opportunity-spotting', archived:false, dateReviewed:null});
-    setJSON(K.ideaVault, vault);
     registerIdentityVote('spotting', val);
   }
   registerActivity();
   renderSpotting();
-  renderIdeaVault();
 }
 
 /* ================= GROWTH: Skill Sprint ================= */
