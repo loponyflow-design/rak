@@ -338,10 +338,21 @@
     border-radius:12px; padding:10px 14px; margin:0 0 22px; font-size:12.5px; color:var(--text-2); line-height:1.5;
   }
   .identity-banner svg{color:var(--green); flex-shrink:0;}
+  .reconnect-btn{
+    display:flex; align-items:center; gap:7px; background:var(--card); border:1px solid var(--border);
+    border-radius:999px; padding:8px 14px; font-size:12px; color:var(--text-3); margin:0 0 12px;
+  }
+  .reconnect-panel{
+    background:var(--card); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow);
+    padding:16px; margin:0 0 22px; font-size:13px; color:var(--text-2); line-height:1.8;
+  }
+  .reconnect-panel b{color:var(--text-1);}
   .identity-votes-row{
     display:flex; align-items:baseline; gap:8px; margin:14px 2px 0; font-size:12.5px; color:var(--text-4);
   }
   .identity-votes-row .num{font-family:'Fraunces',serif; font-size:20px; color:var(--green);}
+  .action-streak-row{font-size:11.5px; color:var(--text-4); margin:4px 2px 0; line-height:1.6;}
+  .action-streak-row b{color:var(--green); font-weight:600;}
   .growth-hint{font-size:11.5px; color:var(--text-4); margin:-6px 0 14px; line-height:1.5;}
 
   /* ---------- Compound view ---------- */
@@ -443,6 +454,12 @@
     <span id="identity-banner-text"></span>
   </div>
 
+  <button class="reconnect-btn" id="reconnect-btn" type="button">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+    เชื่อมกลับสิ่งที่ตั้งใจไว้
+  </button>
+  <div class="reconnect-panel hidden" id="reconnect-panel"></div>
+
   <div class="section-title">โฟกัสวันนี้</div>
   <div class="principles-grid" id="principles-grid"></div>
 
@@ -471,6 +488,10 @@
   </div>
   <div class="streak-section" id="streak-section"></div>
   <p class="streak-freeze-note" id="streak-freeze-note"></p>
+  <div class="identity-banner hidden" id="busy-stuck-banner">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
+    <span id="busy-stuck-banner-text"></span>
+  </div>
 
   <p class="footer-disclaimer">คำแนะนำอิงสภาพอากาศจริงและข้อมูลของคุณ ไม่ใช่คำทำนาย</p>
 </div>
@@ -483,6 +504,7 @@
     <span class="num" id="identity-votes-count">0</span>
     <span id="identity-votes-label">ครั้งที่คุณลงมือทำในหน้านี้</span>
   </div>
+  <div class="action-streak-row" id="action-streak-row"></div>
 
   <!-- Opportunity Spotting -->
   <div class="growth-card">
@@ -537,6 +559,25 @@
     <div class="idea-list" id="idea-list"></div>
     <div class="archive-toggle hidden" id="idea-archive-toggle">ดูคลังเก่า</div>
     <div class="idea-list hidden" id="idea-archive-list"></div>
+  </div>
+
+  <!-- Focus Area -->
+  <div class="growth-card">
+    <div class="growth-card-head">
+      <div class="gi">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 7a5 5 0 1 0 5 5" /><path d="M13 3.055a9 9 0 1 0 7.941 7.945" /></svg>
+      </div>
+      <div>
+        <div class="gt">โฟกัสประจำเดือนนี้</div>
+        <div class="gs">เลือกจุดที่อยากพัฒนา ใช้เลือกความท้าทายประจำสัปดาห์ให้ตรงจุดขึ้น (ไม่บังคับ)</div>
+      </div>
+    </div>
+    <div class="chip-row" id="focus-area-chips"></div>
+    <div class="journal-input-row" style="margin-top:10px;">
+      <input class="journal-input" id="focus-area-custom-input" placeholder="หรือพิมพ์เอง...">
+      <button class="journal-send" id="focus-area-custom-save">→</button>
+    </div>
+    <div class="growth-hint" id="focus-area-current-label" style="margin-top:10px;"></div>
   </div>
 
   <!-- Weekly Challenge -->
@@ -633,6 +674,10 @@
       <div class="q">สัปดาห์นี้มีอะไรที่ตอนแรกดูแย่ แต่กลับดีภายหลังไหม?</div>
       <textarea class="modal-textarea" id="weekly-resilience-text" placeholder="เขียนสั้นๆ หรือข้ามได้..."></textarea>
     </div>
+    <div class="modal-question hidden" id="weekly-identity-wrap">
+      <div class="q">สัปดาห์นี้สิ่งที่ทำ พาไปใกล้ Identity Statement มากขึ้นไหม หรือแค่ยุ่งเฉยๆ</div>
+      <div class="chip-row" id="weekly-identity-chips"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn-primary" id="weekly-save">บันทึกและปิด</button>
     </div>
@@ -645,6 +690,7 @@
     <div class="modal-title">เดือนที่ผ่านมาของคุณ</div>
     <div class="modal-sub" id="monthly-sub"></div>
     <div id="monthly-stats"></div>
+    <div class="modal-question" id="monthly-identity-check"></div>
     <div class="modal-actions">
       <button class="btn-primary" id="monthly-close">รับทราบ</button>
     </div>
@@ -1159,6 +1205,18 @@ var WEEKLY_CHALLENGES = [
   'จดข้อจำกัดของตัวเองที่อาจเป็นอุปสรรคต่อไอเดีย แล้วคิดทางแก้',
   'ตั้งคำถามให้ตัวเอง "ถ้าไม่กลัวล้มเหลว จะทำอะไรก่อน"'
 ];
+/* Index-aligned with WEEKLY_CHALLENGES above (never reorder that array —
+   challengeLog entries store numeric indexes into it, so reordering would
+   silently corrupt historical challenge references). Used only to let a
+   chosen Focus Area (see FOCUS_AREA_PRESETS) prefer matching cards. */
+var WEEKLY_CHALLENGE_CATEGORIES = [
+  'sales','general','decisionMaking','finance','sales',
+  'customerTalk','customerTalk','decisionMaking','decisionMaking','general',
+  'finance','customerTalk','decisionMaking','general','sales',
+  'sales','decisionMaking','general','decisionMaking','decisionMaking'
+];
+var FOCUS_AREA_PRESETS = ['การขาย','การเงิน','การพูดคุยกับลูกค้า','การตัดสินใจ'];
+var FOCUS_AREA_TO_CATEGORY = {'การขาย':'sales','การเงิน':'finance','การพูดคุยกับลูกค้า':'customerTalk','การตัดสินใจ':'decisionMaking'};
 
 /* ================= Storage ================= */
 var K = {
@@ -1185,7 +1243,10 @@ var K = {
   reminderEnabled:'rak_reminderEnabled',
   reminderHour:'rak_reminderHour',
   lastReminderShown:'rak_lastReminderShown',
-  streakFreezes:'rak_streakFreezes'
+  streakFreezes:'rak_streakFreezes',
+  lastBusyStuckShown:'rak_lastBusyStuckShown',
+  currentFocusArea:'rak_currentFocusArea',
+  challengeFeedback:'rak_challengeFeedback'
 };
 function getJSON(key, fallback){
   try{ var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
@@ -1221,6 +1282,10 @@ function getIdentity(){ return getJSON(K.identity, ''); }
 function setIdentity(v){ setJSON(K.identity, v); }
 function getIdentityVotes(){ return getJSON(K.identityVotes, []); }
 function setIdentityVotes(v){ setJSON(K.identityVotes, v); }
+function getCurrentFocusArea(){ return getJSON(K.currentFocusArea, null); }
+function setCurrentFocusArea(area){ setJSON(K.currentFocusArea, {area:area, setDate:todayStr}); }
+function getChallengeFeedback(){ return getJSON(K.challengeFeedback, []); }
+function setChallengeFeedback(v){ setJSON(K.challengeFeedback, v); }
 function getReminderEnabled(){ return getJSON(K.reminderEnabled, false); }
 function setReminderEnabled(v){ setJSON(K.reminderEnabled, v); }
 function getReminderHour(){ return getJSON(K.reminderHour, 20); }
@@ -1526,6 +1591,23 @@ function renderIdentityBanner(){
   }
 }
 
+/* ================= Reconnect button ================= */
+document.getElementById('reconnect-btn').addEventListener('click', function(){
+  var panel = document.getElementById('reconnect-panel');
+  if(!panel.classList.contains('hidden')){ panel.classList.add('hidden'); return; }
+  var identity = getIdentity();
+  var latestIdea = getJSON(K.ideaVault, [])
+    .filter(function(i){ return !i.archived; })
+    .sort(function(a,b){ return a.dateCreated<b.dateCreated ? 1 : -1; })[0];
+  var votes = getIdentityVotes();
+  function countSince(days){ return votes.filter(function(v){ return daysBetween(todayDate, parseDateLocal(v.date))<days; }).length; }
+  panel.innerHTML =
+    '<div><b>ตัวตนที่อยากเป็น:</b> '+(identity && identity.trim() ? escapeHTML(identity.trim()) : 'ยังไม่ได้ตั้งค่า')+'</div>'+
+    '<div style="margin-top:6px;"><b>ไอเดียล่าสุด:</b> '+(latestIdea ? escapeHTML(latestIdea.text) : 'ยังไม่มีไอเดียในคลัง')+'</div>'+
+    '<div style="margin-top:6px;"><b>การสะสม:</b> สัปดาห์นี้ '+countSince(7)+' · เดือนนี้ '+countSince(30)+' · สะสมทั้งหมด '+votes.length+' ครั้ง</div>';
+  panel.classList.remove('hidden');
+});
+
 /* ================= Rendering: Today ================= */
 function renderHero(){
   document.getElementById('hero-date').textContent = formatThaiDate(todayDate);
@@ -1755,6 +1837,24 @@ document.getElementById('breathe-wrap').addEventListener('click', function(){
   showIntuitionQuestion();
 });
 
+/* ================= Busy-but-stuck detector =================
+   Shown at most once a week, plain tone, no popup: the general streak
+   (opening the app) is still going, but no real Growth action has landed
+   in over 5 days. computeActionStreak() lives further down (Growth-section)
+   but is a plain function declaration, so it's reachable from here. */
+function checkBusyButStuck(){
+  var mainStreak = computeDisplayStreak();
+  if(mainStreak.display<=0) return;
+  var action = computeActionStreak();
+  var gap = action.lastActionDate ? daysBetween(todayDate, parseDateLocal(action.lastActionDate)) : Infinity;
+  if(gap<=5) return;
+  var last = localStorage.getItem(K.lastBusyStuckShown);
+  if(last && daysBetween(todayDate, parseDateLocal(last))<7) return;
+  document.getElementById('busy-stuck-banner-text').textContent = 'สัปดาห์นี้เปิดแอพทุกวัน แต่ยังไม่มีการลงมือทำใหม่ — ปกติไหม หรืออยากกลับมาโฟกัส';
+  document.getElementById('busy-stuck-banner').classList.remove('hidden');
+  localStorage.setItem(K.lastBusyStuckShown, todayStr);
+}
+
 /* ================= Weekly reflection + weekly challenge draw ================= */
 function checkWeeklyReflection(){
   var last = localStorage.getItem(K.lastWeekly);
@@ -1763,6 +1863,8 @@ function checkWeeklyReflection(){
   if(gap>=7){ openWeeklyReflection(); drawWeeklyChallenge(); }
 }
 var weeklySelectedPrinciple = null;
+var weeklyIdentityAlignment = null;
+var WEEKLY_IDENTITY_OPTIONS = [{value:'closer', label:'ใกล้ Identity Statement มากขึ้น'}, {value:'busy', label:'แค่ยุ่งเฉยๆ'}];
 function openWeeklyReflection(){
   var entries = dailyLog.filter(function(e){ return daysBetween(todayDate, parseDateLocal(e.date)) < 7; });
   var principleCounts = {opportunities:0, intuition:0, positivity:0, resilience:0};
@@ -1798,12 +1900,36 @@ function openWeeklyReflection(){
     chipRow.appendChild(chip);
   });
   document.getElementById('weekly-resilience-text').value = '';
+
+  var identity = getIdentity();
+  var identityWrap = document.getElementById('weekly-identity-wrap');
+  weeklyIdentityAlignment = null;
+  if(identity && identity.trim()){
+    identityWrap.classList.remove('hidden');
+    var identityChipRow = document.getElementById('weekly-identity-chips');
+    identityChipRow.innerHTML = '';
+    WEEKLY_IDENTITY_OPTIONS.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip-btn';
+      chip.textContent = opt.label;
+      chip.addEventListener('click', function(){
+        weeklyIdentityAlignment = opt.value;
+        Array.prototype.forEach.call(identityChipRow.children, function(c){c.classList.remove('selected');});
+        chip.classList.add('selected');
+      });
+      identityChipRow.appendChild(chip);
+    });
+  } else {
+    identityWrap.classList.add('hidden');
+  }
+
   document.getElementById('weekly-modal').classList.remove('hidden');
 }
 document.getElementById('weekly-save').addEventListener('click', function(){
   var note = document.getElementById('weekly-resilience-text').value.trim();
   var reflections = getJSON(K.weeklyReflections, []);
-  reflections.push({date:todayStr, helpfulPrinciple:weeklySelectedPrinciple, resilienceNote:note});
+  reflections.push({date:todayStr, helpfulPrinciple:weeklySelectedPrinciple, resilienceNote:note, identityAlignment:weeklyIdentityAlignment});
   setJSON(K.weeklyReflections, reflections);
   if(weeklySelectedPrinciple){
     var w = getWeights();
@@ -1850,10 +1976,41 @@ function openMonthlyStory(prevKey, curKey){
     var avgTemp = temps.reduce(function(a,b){return a+b;},0)/temps.length;
     statsHtml += '<div class="modal-stat-row"><span>อุณหภูมิเฉลี่ยเดือนนี้</span><span class="v">~'+avgTemp.toFixed(0)+'°C</span></div>';
   }
+
+  // Monthly Skill Progress (item M). "Focus Area" reflects whatever is
+  // currently set (there's no per-month history of it), labeled honestly
+  // rather than implying it's what was active during prevKey specifically.
+  var focus = getCurrentFocusArea();
+  var monthChallengeLog = getJSON(K.challengeLog, []).filter(function(c){ return c.weekStart && c.weekStart.slice(0,7)===prevKey; });
+  var monthChallengesDone = monthChallengeLog.filter(function(c){ return c.completed; }).length;
+  var allFeedback = getChallengeFeedback();
+  var betterCount = allFeedback.filter(function(f){ return f.rating==='better'; }).length;
+  var sameCount = allFeedback.filter(function(f){ return f.rating==='same'; }).length;
+  statsHtml += '<div class="modal-stat-row"><span>โฟกัสที่ตั้งไว้ตอนนี้</span><span class="v">'+(focus?escapeHTML(focus.area):'ยังไม่ได้ตั้ง')+'</span></div>';
+  statsHtml += '<div class="modal-stat-row"><span>ความท้าทายที่ทำสำเร็จเดือนนี้</span><span class="v">'+monthChallengesDone+' ครั้ง</span></div>';
+  if(allFeedback.length){
+    statsHtml += '<div class="modal-stat-row"><span>ฟีดแบ็กสะสมทั้งหมด</span><span class="v">ดีขึ้น '+betterCount+' · เหมือนเดิม '+sameCount+' (จาก '+allFeedback.length+' ครั้ง)</span></div>';
+  }
   document.getElementById('monthly-stats').innerHTML = statsHtml;
 
+  // Identity check-in (item G, monthly)
+  var identity = getIdentity();
+  var identityCheckEl = document.getElementById('monthly-identity-check');
+  if(identity && identity.trim()){
+    identityCheckEl.innerHTML =
+      '<div class="q">Identity Statement ยังใช่สิ่งที่อยากเป็นอยู่ไหม</div>'+
+      '<div style="font-family:\'Fraunces\',serif; font-size:15px; color:var(--text-1); margin:6px 0 10px;">'+escapeHTML(identity.trim())+'</div>'+
+      '<button class="onboard-link" id="monthly-identity-edit" style="padding:0;">แก้ไข Identity Statement</button>';
+    document.getElementById('monthly-identity-edit').addEventListener('click', function(){
+      document.getElementById('monthly-modal').classList.add('hidden');
+      openSettingsModal(true);
+    });
+  } else {
+    identityCheckEl.innerHTML = '';
+  }
+
   var stories = getJSON(K.monthlyStories, []);
-  stories.push({month:prevKey, topPrinciple:topId, journalDays:journalDays});
+  stories.push({month:prevKey, topPrinciple:topId, journalDays:journalDays, focusAreaAtClose: focus?focus.area:null, challengesCompleted:monthChallengesDone, feedbackBetter:betterCount, feedbackSame:sameCount});
   setJSON(K.monthlyStories, stories);
   localStorage.setItem(K.lastMonthly, curKey);
   document.getElementById('monthly-modal').classList.remove('hidden');
@@ -2069,19 +2226,73 @@ document.getElementById('idea-resurface-delete').addEventListener('click', funct
   renderIdeaVault();
 });
 
+/* ================= GROWTH: Focus Area ================= */
+function renderFocusArea(){
+  var chipRow = document.getElementById('focus-area-chips');
+  var label = document.getElementById('focus-area-current-label');
+  if(!chipRow || !label) return;
+  var current = getCurrentFocusArea();
+  chipRow.innerHTML = '';
+  FOCUS_AREA_PRESETS.forEach(function(area){
+    var chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip-btn'+(current && current.area===area ? ' selected' : '');
+    chip.textContent = area;
+    chip.addEventListener('click', function(){
+      setCurrentFocusArea(area);
+      renderFocusArea();
+    });
+    chipRow.appendChild(chip);
+  });
+  label.textContent = current
+    ? 'กำลังโฟกัส: '+current.area+' (ตั้งไว้เมื่อ '+formatThaiDate(parseDateLocal(current.setDate))+')'
+    : 'ยังไม่ได้เลือกโฟกัส — ถ้าไม่เลือก ความท้าทายประจำสัปดาห์จะสุ่มจากทั้งหมดตามเดิม';
+}
+document.getElementById('focus-area-custom-save').addEventListener('click', function(){
+  var input = document.getElementById('focus-area-custom-input');
+  var val = input.value.trim();
+  if(!val) return;
+  setCurrentFocusArea(val);
+  input.value = '';
+  renderFocusArea();
+});
+document.getElementById('focus-area-custom-input').addEventListener('keydown', function(ev){
+  if(ev.key==='Enter') document.getElementById('focus-area-custom-save').click();
+});
+
 /* ================= GROWTH: Weekly Challenge ================= */
+/* Picks from the subset of WEEKLY_CHALLENGES matching the current Focus
+   Area's category (item K); falls back to the full pool when no focus area
+   is set, or when a free-typed custom area has no matching taxonomy entry —
+   same behavior as "no focus area set", not a silent failure. */
+function pickWeeklyChallengeIndex(excludeIdx){
+  var focus = getCurrentFocusArea();
+  var targetCategory = focus ? FOCUS_AREA_TO_CATEGORY[focus.area] : null;
+  var pool = [];
+  if(targetCategory){
+    WEEKLY_CHALLENGE_CATEGORIES.forEach(function(cat, i){ if(cat===targetCategory) pool.push(i); });
+  }
+  if(!pool.length){
+    pool = WEEKLY_CHALLENGES.map(function(_, i){ return i; });
+  }
+  if(pool.length>1 && excludeIdx!=null){
+    var filtered = pool.filter(function(i){ return i!==excludeIdx; });
+    if(filtered.length) pool = filtered;
+  }
+  return pool[Math.floor(Math.random()*pool.length)];
+}
 function drawWeeklyChallenge(){
   var log = getJSON(K.challengeLog, []);
-  var lastIdx = log.length ? log[log.length-1].challengeIndex : -1;
-  var idx;
-  do{ idx = Math.floor(Math.random() * WEEKLY_CHALLENGES.length); }while(idx===lastIdx && WEEKLY_CHALLENGES.length>1);
-  log.push({weekStart:todayStr, challengeIndex:idx, challengeText:WEEKLY_CHALLENGES[idx], completed:false, rerolled:false, voted:false});
+  var lastIdx = log.length ? log[log.length-1].challengeIndex : null;
+  var idx = pickWeeklyChallengeIndex(lastIdx);
+  log.push({weekStart:todayStr, challengeIndex:idx, challengeText:WEEKLY_CHALLENGES[idx], completed:false, rerolled:false, voted:false, feedbackGiven:false});
   setJSON(K.challengeLog, log);
 }
 function getCurrentChallenge(){
   var log = getJSON(K.challengeLog, []);
   return log.length ? log[log.length-1] : null;
 }
+var CHALLENGE_FEEDBACK_OPTIONS = [{value:'better', label:'ดีขึ้น'}, {value:'same', label:'เหมือนเดิม'}, {value:'unsure', label:'ไม่แน่ใจ'}];
 function renderChallenge(){
   var body = document.getElementById('challenge-body');
   var current = getCurrentChallenge();
@@ -2089,13 +2300,22 @@ function renderChallenge(){
     body.innerHTML = '<div class="idea-empty">ยังไม่มีความท้าทายสัปดาห์นี้ กลับมาดูใหม่เมื่อครบสัปดาห์นะ</div>';
     return;
   }
+  var feedbackHtml = '';
+  if(current.completed && !current.feedbackGiven){
+    feedbackHtml =
+      '<div class="modal-question" style="margin-top:14px;">'+
+      '<div class="q">ครั้งนี้รู้สึกว่าทำได้ดีขึ้นในเรื่องนี้ไหม (ไม่บังคับ)</div>'+
+      '<div class="chip-row" id="challenge-feedback-chips"></div>'+
+      '</div>';
+  }
   body.innerHTML =
     '<div class="challenge-caption">สุ่มจากคลังกิจกรรม ไม่มีความหมายพิเศษ</div>'+
     '<div class="growth-prompt">'+current.challengeText+'</div>'+
     '<div class="challenge-actions">'+
     '<div class="challenge-check'+(current.completed?' done':'')+'" id="challenge-check"><div class="cb">✓</div><span>ทำแล้ว</span></div>'+
     (current.rerolled ? '' : '<button class="btn-secondary" id="challenge-reroll">สุ่มใหม่</button>')+
-    '</div>';
+    '</div>'+
+    feedbackHtml;
   document.getElementById('challenge-check').addEventListener('click', function(){
     var log = getJSON(K.challengeLog, []);
     var entry = log[log.length-1];
@@ -2113,13 +2333,32 @@ function renderChallenge(){
     rerollBtn.addEventListener('click', function(){
       var log = getJSON(K.challengeLog, []);
       var entry = log[log.length-1];
-      var idx;
-      do{ idx = Math.floor(Math.random() * WEEKLY_CHALLENGES.length); }while(idx===entry.challengeIndex && WEEKLY_CHALLENGES.length>1);
-      entry.challengeIndex = idx;
-      entry.challengeText = WEEKLY_CHALLENGES[idx];
+      entry.challengeIndex = pickWeeklyChallengeIndex(entry.challengeIndex);
+      entry.challengeText = WEEKLY_CHALLENGES[entry.challengeIndex];
       entry.rerolled = true;
       setJSON(K.challengeLog, log);
       renderChallenge();
+    });
+  }
+  var feedbackChipRow = document.getElementById('challenge-feedback-chips');
+  if(feedbackChipRow){
+    CHALLENGE_FEEDBACK_OPTIONS.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip-btn';
+      chip.textContent = opt.label;
+      chip.addEventListener('click', function(){
+        var focus = getCurrentFocusArea();
+        var feedback = getChallengeFeedback();
+        feedback.push({date:todayStr, focusArea:focus?focus.area:null, rating:opt.value});
+        setChallengeFeedback(feedback);
+        var log = getJSON(K.challengeLog, []);
+        var entry = log[log.length-1];
+        entry.feedbackGiven = true;
+        setJSON(K.challengeLog, log);
+        renderChallenge();
+      });
+      feedbackChipRow.appendChild(chip);
     });
   }
 }
@@ -2230,6 +2469,38 @@ function renderIdentityVotesSummary(){
   document.getElementById('identity-votes-label').textContent = identity && identity.trim()
     ? 'ครั้งที่คุณลงมือทำตามตัวตนที่ตั้งไว้'
     : 'ครั้งที่คุณลงมือทำในหน้านี้ (ตั้ง "ตัวตนที่อยากเป็น" ได้ในหน้าตั้งค่า)';
+}
+
+/* ================= Action streak (derived, no stored state) =================
+   Deliberately computed live from identityVotes every render, rather than
+   kept as its own incrementing counter — a separately-registered counter is
+   exactly what caused the earlier "two streaks that quietly drift apart"
+   confusion this app had before. Counting from the same log Compound View
+   already reads means this can never disagree with it. Only counts days
+   with a real Growth action (spotting/skill/idea/challenge), never just
+   opening the app — kept on the Growth page, away from the main streak on
+   Today, so the two are never visually stacked together. */
+function computeActionStreak(){
+  var votes = getIdentityVotes();
+  var uniqueDates = {};
+  votes.forEach(function(v){ uniqueDates[v.date] = true; });
+  var dates = Object.keys(uniqueDates).sort();
+  if(!dates.length) return {current:0, longest:0, lastActionDate:null};
+  var longest = 1, run = 1;
+  for(var i=1;i<dates.length;i++){
+    var gap = daysBetween(parseDateLocal(dates[i]), parseDateLocal(dates[i-1]));
+    run = (gap===1) ? run+1 : 1;
+    if(run>longest) longest = run;
+  }
+  var lastActionDate = dates[dates.length-1];
+  var gapToday = daysBetween(todayDate, parseDateLocal(lastActionDate));
+  return {current: gapToday<=1 ? run : 0, longest:longest, lastActionDate:lastActionDate};
+}
+function renderActionStreak(){
+  var el = document.getElementById('action-streak-row');
+  if(!el) return;
+  var s = computeActionStreak();
+  el.innerHTML = 'ลงมือทำต่อเนื่อง <b>'+s.current+'</b> วัน (สูงสุด <b>'+s.longest+'</b> วัน) — นับเฉพาะวันที่มีการบันทึก action ในหน้านี้จริง';
 }
 function renderCompoundIdentityLine(){
   var el = document.getElementById('compound-identity-line');
@@ -2364,8 +2635,10 @@ function renderGrowthPage(){
   renderChallenge();
   checkIdeaResurface();
   renderIdentityVotesSummary();
+  renderActionStreak();
   renderCompoundView();
   renderWeatherInsight();
+  renderFocusArea();
 }
 
 /* ================= Bottom nav ================= */
@@ -2615,6 +2888,7 @@ function startApp(location){
     }
     checkWeeklyReflection();
     checkMonthlyStory();
+    checkBusyButStuck();
     checkDailyReminder();
     setInterval(checkDailyReminder, 15*60*1000); // catches the threshold hour if the tab is left open
   });
