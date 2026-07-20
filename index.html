@@ -344,16 +344,26 @@
   .growth-hint{font-size:11.5px; color:var(--text-4); margin:-6px 0 14px; line-height:1.5;}
 
   /* ---------- Compound view ---------- */
-  .compound-stats{display:flex; gap:10px;}
+  .compound-subtitle{font-size:11px; color:var(--text-4); line-height:1.6; margin-top:2px;}
+  .compound-identity-line{
+    display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; padding-top:12px;
+    border-top:1px solid var(--border); font-size:12.5px; color:var(--text-3);
+  }
+  .compound-identity-line b{color:var(--green); font-weight:600;}
+  .compound-identity-line .onboard-link{padding:0; font-size:12.5px;}
+  .compound-empty{font-size:12.5px; color:var(--text-4); text-align:center; padding:18px 4px 4px; line-height:1.6;}
+  .compound-error{font-size:12.5px; color:#B3492E; text-align:center; padding:18px 4px 4px; line-height:1.6;}
+  .compound-stats{display:flex; gap:10px; margin-top:14px;}
   .compound-stat{flex:1; text-align:center; background:var(--bg); border-radius:12px; padding:12px 6px;}
   .compound-stat .num{font-family:'Fraunces',serif; font-size:22px; color:var(--green); font-variant-numeric:tabular-nums;}
   .compound-stat .lbl{font-size:10.5px; color:var(--text-4); margin-top:3px;}
-  .compound-bars{display:flex; align-items:flex-end; gap:8px; height:80px; margin-top:16px; padding-top:6px;}
+  .compound-bars-caption{font-size:10.5px; color:var(--text-5); margin-top:16px;}
+  .compound-bars{display:flex; align-items:flex-end; gap:8px; height:80px; margin-top:10px; padding-top:6px;}
   .compound-bar-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
   .compound-bar-track{width:100%; max-width:26px; flex:1; display:flex; align-items:flex-end;}
   .compound-bar-fill{width:100%; background:var(--green); border-radius:4px 4px 0 0; min-height:3px; opacity:0.85;}
   .compound-bar-count{font-size:10px; color:var(--text-4); margin-bottom:3px;}
-  .compound-bar-label{font-size:10px; color:var(--text-5); margin-top:6px;}
+  .compound-bar-label{font-size:9.5px; color:var(--text-5); margin-top:6px; line-height:1.35;}
 </style>
 </head>
 <body>
@@ -548,12 +558,9 @@
         <div class="gs">ภาพรวมจำนวนครั้งที่คุณลงมือทำ</div>
       </div>
     </div>
-    <div class="compound-stats">
-      <div class="compound-stat"><div class="num" id="compound-week">0</div><div class="lbl">สัปดาห์นี้</div></div>
-      <div class="compound-stat"><div class="num" id="compound-month">0</div><div class="lbl">เดือนนี้</div></div>
-      <div class="compound-stat"><div class="num" id="compound-total">0</div><div class="lbl">สะสมทั้งหมด</div></div>
-    </div>
-    <div class="compound-bars" id="compound-bars"></div>
+    <div class="compound-subtitle">นับจากการบันทึกใน มองหาโอกาสวันนี้, ฝึกทักษะ, คลังไอเดีย และความท้าทายประจำสัปดาห์</div>
+    <div id="compound-body"></div>
+    <div class="compound-identity-line" id="compound-identity-line"></div>
   </div>
 
   <p class="footer-disclaimer">เครื่องมือฝึกฝนที่วัดผลจากการกระทำของคุณเอง ไม่รับประกันผลลัพธ์ทางธุรกิจหรือการเงิน</p>
@@ -1144,12 +1151,24 @@ var K = {
   challengeLog:'rak_weeklyChallengeLog',
   lastIdeaResurface:'rak_lastIdeaResurface',
   identity:'rak_identity',
-  identityVotes:'rak_identityVotes'
+  identityVotes:'rak_identityVotes',
+  identityVotesBackfillDone:'rak_identityVotesBackfillDone_v1',
+  preBackfillBackup:'rak_backupPreIdentityVotesBackfill_v1'
 };
 function getJSON(key, fallback){
   try{ var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
 }
 function setJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+/* Distinguishes "key genuinely empty/unset" (ok:true, value:null) from
+   "value present but failed to parse" (ok:false) — getJSON() collapses both
+   to the fallback, which is exactly what the Compound View empty-state check
+   must NOT do (a read failure must never be shown as "no activity yet"). */
+function readJSONStrict(key){
+  var raw = localStorage.getItem(key);
+  if(raw===null) return {ok:true, value:null};
+  try{ return {ok:true, value:JSON.parse(raw)}; }
+  catch(e){ return {ok:false, value:null}; }
+}
 
 function getLocation(){ return getJSON(K.location, null); }
 function setLocation(loc){ setJSON(K.location, loc); }
@@ -1988,6 +2007,102 @@ function renderChallenge(){
   }
 }
 
+/* ================= GROWTH: Identity votes backfill (one-time, additive-only) =================
+   Compound View / identityVotes only started being recorded the day that feature
+   shipped, so anyone with older Opportunity Spotting / Skill Sprint / Idea Vault /
+   Weekly Challenge history would see Compound View as if they'd never done anything.
+   This derives the missing votes from that pre-existing data and APPENDS them —
+   it never deletes, renames, or overwrites any existing field. Runs at most once
+   per browser (guarded by K.identityVotesBackfillDone) and snapshots every K.*
+   value into K.preBackfillBackup before writing anything, so the pre-migration
+   state is always recoverable. */
+function backupAllDataRaw(){
+  var data = {};
+  Object.keys(K).forEach(function(name){
+    var key = K[name];
+    var raw = localStorage.getItem(key);
+    if(raw!==null) data[key] = raw;
+  });
+  return data;
+}
+function runIdentityVotesBackfill(){
+  try{
+    if(localStorage.getItem(K.identityVotesBackfillDone)==='1') return;
+
+    var votes = getIdentityVotes().slice();
+    var votesByDateSource = {};
+    votes.forEach(function(v){
+      var k = v.date+'|'+v.sourceFeature;
+      votesByDateSource[k] = (votesByDateSource[k]||0) + 1;
+    });
+    function existingCount(date, source){ return votesByDateSource[date+'|'+source] || 0; }
+    function addVote(date, source, note){
+      votes.push({date:date, sourceFeature:source, note:(note||'').slice(0,200), backfilled:true});
+      var k = date+'|'+source;
+      votesByDateSource[k] = (votesByDateSource[k]||0) + 1;
+    }
+
+    var addedCount = 0;
+
+    // Opportunity spotting: one vote per day that has a non-empty answer.
+    getJSON(K.spottingLog, []).forEach(function(e){
+      if(!e.answer || !e.answer.trim().length) return;
+      if(existingCount(e.date, 'spotting')<1){ addVote(e.date, 'spotting', e.answer); addedCount++; }
+    });
+
+    // Skill sprint: one vote per practiced day, across the active skill + history.
+    var skillSessions = [];
+    var currentSkill = getJSON(K.growthSkill, null);
+    if(currentSkill) skillSessions.push(currentSkill);
+    getJSON(K.skillHistory, []).forEach(function(s){ skillSessions.push(s); });
+    skillSessions.forEach(function(s){
+      (s.practiceDays||[]).forEach(function(date){
+        if(existingCount(date, 'skill')<1){ addVote(date, 'skill', s.name); addedCount++; }
+      });
+    });
+
+    // Idea vault: one vote per idea, matched by creation date (multiple per day allowed).
+    // Skips entries mirrored in from opportunity-spotting by the old (now-removed)
+    // duplication behavior — those were never a separate action, just a copy.
+    var ideasByDate = {};
+    getJSON(K.ideaVault, []).forEach(function(idea){
+      if(idea.source==='opportunity-spotting') return;
+      (ideasByDate[idea.dateCreated] = ideasByDate[idea.dateCreated] || []).push(idea);
+    });
+    Object.keys(ideasByDate).forEach(function(date){
+      var ideas = ideasByDate[date];
+      var have = existingCount(date, 'idea');
+      for(var i=have; i<ideas.length; i++){ addVote(date, 'idea', ideas[i].text); addedCount++; }
+    });
+
+    // Weekly challenge: completed entries that predate the `voted` field.
+    var challengeLog = getJSON(K.challengeLog, []);
+    var challengeLogChanged = false;
+    challengeLog.forEach(function(entry){
+      if(entry.completed && !entry.voted){
+        addVote(entry.weekStart, 'challenge', entry.challengeText);
+        entry.voted = true;
+        addedCount++;
+        challengeLogChanged = true;
+      }
+    });
+
+    if(addedCount===0){
+      localStorage.setItem(K.identityVotesBackfillDone, '1');
+      return;
+    }
+
+    var backup = {createdAt:new Date().toISOString(), reason:'pre-identity-votes-backfill', data:backupAllDataRaw()};
+    localStorage.setItem(K.preBackfillBackup, JSON.stringify(backup));
+
+    setIdentityVotes(votes);
+    if(challengeLogChanged) setJSON(K.challengeLog, challengeLog);
+    localStorage.setItem(K.identityVotesBackfillDone, '1');
+  }catch(e){
+    console.warn('Identity votes backfill skipped due to an error (nothing was written):', e);
+  }
+}
+
 /* ================= GROWTH: Identity votes + Compound view ================= */
 function renderIdentityVotesSummary(){
   var row = document.getElementById('identity-votes-row');
@@ -1999,18 +2114,38 @@ function renderIdentityVotesSummary(){
     ? 'ครั้งที่คุณลงมือทำตามตัวตนที่ตั้งไว้'
     : 'ครั้งที่คุณลงมือทำในหน้านี้ (ตั้ง "ตัวตนที่อยากเป็น" ได้ในหน้าตั้งค่า)';
 }
+function renderCompoundIdentityLine(){
+  var el = document.getElementById('compound-identity-line');
+  if(!el) return;
+  var identity = getIdentity();
+  if(identity && identity.trim()){
+    el.innerHTML = 'สะสมสู่: <b>'+escapeHTML(identity.trim())+'</b>';
+  } else {
+    el.innerHTML = '<span>ยังไม่ได้ตั้งตัวตนที่อยากเป็น</span><button class="onboard-link" id="compound-set-identity-btn" type="button">ตั้งค่าตอนนี้</button>';
+    document.getElementById('compound-set-identity-btn').addEventListener('click', function(){ openSettingsModal(true); });
+  }
+}
 function renderCompoundView(){
-  var votes = getIdentityVotes();
+  renderCompoundIdentityLine();
+
+  var body = document.getElementById('compound-body');
+  if(!body) return;
+
+  var read = readJSONStrict(K.identityVotes);
+  if(!read.ok){
+    body.innerHTML = '<div class="compound-error">โหลดข้อมูลการสะสมไม่สำเร็จ (ข้อมูลอาจเสียหาย) ลองรีเฟรชหน้านี้ หรือกู้คืนจากไฟล์สำรองในหน้าตั้งค่า</div>';
+    return;
+  }
+  var votes = read.value || [];
+  if(!votes.length){
+    body.innerHTML = '<div class="compound-empty">ยังไม่มีการลงมือทำ — เริ่มบันทึกในหน้า Growth นี้ได้เลย เช่น มองหาโอกาสวันนี้ หรือเพิ่มไอเดียลงคลัง</div>';
+    return;
+  }
+
   function countSince(days){
     return votes.filter(function(v){ return daysBetween(todayDate, parseDateLocal(v.date)) < days; }).length;
   }
-  var weekEl = document.getElementById('compound-week');
-  var monthEl = document.getElementById('compound-month');
-  var totalEl = document.getElementById('compound-total');
-  if(!weekEl) return;
-  weekEl.textContent = countSince(7);
-  monthEl.textContent = countSince(30);
-  totalEl.textContent = votes.length;
+  var weekCount = countSince(7), monthCount = countSince(30), totalCount = votes.length;
 
   var WEEKS = 6;
   var buckets = [];
@@ -2023,10 +2158,9 @@ function renderCompoundView(){
     buckets.push(count);
   }
   var max = Math.max.apply(null, buckets.concat([1]));
-  var bars = document.getElementById('compound-bars');
-  bars.innerHTML = buckets.map(function(count, i){
+  var barsHtml = buckets.map(function(count, i){
     var weeksAgo = WEEKS-1-i;
-    var label = weeksAgo===0 ? 'นี้' : '-'+weeksAgo;
+    var label = weeksAgo===0 ? 'สัปดาห์นี้' : weeksAgo+' สัปดาห์ก่อน';
     var heightPct = Math.max(6, Math.round(count/max*100));
     return '<div class="compound-bar-col">'+
       '<div class="compound-bar-count">'+count+'</div>'+
@@ -2034,6 +2168,15 @@ function renderCompoundView(){
       '<div class="compound-bar-label">'+label+'</div>'+
       '</div>';
   }).join('');
+
+  body.innerHTML =
+    '<div class="compound-stats">'+
+      '<div class="compound-stat"><div class="num">'+weekCount+'</div><div class="lbl">สัปดาห์นี้</div></div>'+
+      '<div class="compound-stat"><div class="num">'+monthCount+'</div><div class="lbl">เดือนนี้</div></div>'+
+      '<div class="compound-stat"><div class="num">'+totalCount+'</div><div class="lbl">สะสมทั้งหมด</div></div>'+
+    '</div>'+
+    '<div class="compound-bars-caption">ย้อนหลัง 6 สัปดาห์</div>'+
+    '<div class="compound-bars">'+barsHtml+'</div>';
 }
 
 function renderGrowthPage(){
@@ -2078,14 +2221,22 @@ function renderScheduleGrid(){
     grid.appendChild(chip);
   });
 }
-document.getElementById('settings-btn').addEventListener('click', function(){
+function openSettingsModal(focusIdentity){
   var loc = getLocation() || DEFAULT_LOCATION;
   document.getElementById('settings-location-val').textContent = loc.label;
   document.getElementById('settings-location-status').textContent = '';
   document.getElementById('settings-identity-input').value = getIdentity();
   renderScheduleGrid();
   document.getElementById('settings-modal').classList.remove('hidden');
-});
+  if(focusIdentity){
+    setTimeout(function(){
+      var input = document.getElementById('settings-identity-input');
+      input.focus();
+      input.scrollIntoView({block:'center'});
+    }, 50);
+  }
+}
+document.getElementById('settings-btn').addEventListener('click', function(){ openSettingsModal(false); });
 document.getElementById('settings-close').addEventListener('click', function(){
   document.getElementById('settings-modal').classList.add('hidden');
 });
@@ -2094,6 +2245,7 @@ document.getElementById('settings-identity-save').addEventListener('click', func
   setIdentity(val);
   renderIdentityBanner();
   renderIdentityVotesSummary();
+  renderCompoundView();
 });
 function applyNewLocation(loc){
   setLocation(loc);
@@ -2222,6 +2374,7 @@ function startApp(location){
   document.getElementById('intuition-fab').classList.remove('hidden');
   document.getElementById('bottom-nav').classList.remove('hidden');
   dailyLog = getDailyLog();
+  runIdentityVotesBackfill();
   getOrCreateTodayEntry(location).then(function(entry){
     todayEntry = entry;
     renderAll();
